@@ -18,6 +18,16 @@ client = boto3.client(
 minecraft_instance_ids = [aws_secrets.instance_id]
 
 
+# common solution from: https://stackoverflow.com/a/22238613
+from datetime import date, datetime
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError ("Type %s not serializable" % type(obj))
+
+
 def start_ec2_instance(instance_ids, addl_info='', dry_run=True):
     ''' Start the ec2 instance
 
@@ -27,11 +37,26 @@ def start_ec2_instance(instance_ids, addl_info='', dry_run=True):
         - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.start_instances
     '''
 
-    response = client.start_instances(
+    start_response = client.start_instances(
             InstanceIds=instance_ids,
             AdditionalInfo=addl_info,
             DryRun=dry_run
             )
+
+    # might move this to a separate section of the route
+    # especially if i call describe before start and use a condition to start
+    # i could also include a stop function since that is faster
+    #   removes a roadblock
+    # can dispatch a an email with SNS if it's running for more than a day
+    # would still be nice to get a user count somehow before stopping
+    # the instance does tell the minecraft client user count so maybe it has an api...
+    # the api would have to be at the game port though.... ... hmmm...
+    describe_response = client.describe_instances(
+            InstanceIds=instance_ids,
+            DryRun=dry_run
+            )
+
+    response = [start_response, describe_response]
 
     return response
 
@@ -49,7 +74,7 @@ def start_webpage():
     
     response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
 
-    return json.dumps(response)
+    return json.dumps(response, default=json_serial)
 
 
 if __name__ == '__main__':
