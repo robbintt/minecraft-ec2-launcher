@@ -1,0 +1,4 @@
+# AWS Lambda Function: Start EC2 Instance
+
+
+Also might have a function to stop the instance when it receives a signal... and maybe even poll for that signal? Would rather have the signal pushing go to this from the EC2 instance since the EC2 instance is running and the lamdba costs money to run.
