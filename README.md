@@ -23,3 +23,7 @@ Just set `Hibernate=True` in stop_instances.
 
 Zappa default roles are pretty permissive. This needs reduced: https://github.com/Miserlou/Zappa#custom-aws-iam-roles-and-policies-for-deployment
 
+
+## Custom Domain + Zappa
+
+- https://romandc.com/zappa-django-guide/walk_domain/

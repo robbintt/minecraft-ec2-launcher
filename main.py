@@ -44,7 +44,7 @@ def stop_ec2_instance(instance_ids, dry_run, hibernate):
     '''
     stop_response = client.stop_instances(
             InstanceIds=instance_ids,
-            Hibernate=hibernate,
+            #Hibernate=hibernate, # do not include unless enabled on EC2 or it will fail
             DryRun=dry_run
             )
 
@@ -96,8 +96,15 @@ def start_webpage():
         127.0.0.1 - - [15/Jun/2019 19:43:15] "GET /start/ HTTP/1.1" 500 -
 
     '''
-    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    start_response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
+
+    try:
+        start_response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        start_response = ["Start failed: {}".format(e)]
 
     try:
         public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
@@ -122,8 +129,15 @@ def stop_webpage():
 
     then i could even rotate UUIDs if there's an issue
     '''
-    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    stop_response = stop_ec2_instance(minecraft_instance_ids, dry_run=False, hibernate=False)
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
+
+    try:
+        stop_response = stop_ec2_instance(minecraft_instance_ids, dry_run=False, hibernate=False)
+    except Exception as e:
+        stop_response = ["Stop failed: {}".format(e)]
 
     try:
         public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
@@ -137,19 +151,27 @@ def stop_webpage():
 
     return render_template('stop_details.html', public_ip=public_ip, state=state, response=[describe_response, stop_response])
 
+
 @app.route('/', methods=["GET"])
 @app.route('/debug/', methods=["GET"])
 def debug_webpage():
     ''' See a describe in json
     '''
-    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
+
     return json.dumps(describe_response, default=json_serial)
 
 @app.route('/describe/', methods=["GET"])
 def describe_webpage():
     ''' Get a description of the ami state
     '''
-    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
 
     try:
         public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
