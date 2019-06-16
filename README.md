@@ -10,3 +10,9 @@ Instance hibernation will significantly speed up launch times and preserve exist
 
 Just set `Hibernate=True` in stop_instances.
 
+
+
+## Zappa Roles
+
+Zappa default roles are pretty permissive. This needs reduced: https://github.com/Miserlou/Zappa#custom-aws-iam-roles-and-policies-for-deployment
+
