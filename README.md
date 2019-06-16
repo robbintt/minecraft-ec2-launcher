@@ -27,3 +27,12 @@ Zappa default roles are pretty permissive. This needs reduced: https://github.co
 ## Custom Domain + Zappa
 
 - https://romandc.com/zappa-django-guide/walk_domain/
+
+
+## Server Status Checker
+
+Ideally not shut down if people are online or something.
+
+https://github.com/Dinnerbone/mcstatus
+
+This can also be used to report amount of time without a login if desired.  Then the EC2 instance can be shut down when idle for 30 minutes or something.
