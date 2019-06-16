@@ -138,13 +138,30 @@ def stop_webpage():
     return render_template('stop_details.html', public_ip=public_ip, state=state, response=[describe_response, stop_response])
 
 @app.route('/', methods=["GET"])
+@app.route('/debug/', methods=["GET"])
+def debug_webpage():
+    ''' See a describe in json
+    '''
+    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    return json.dumps(describe_response, default=json_serial)
+
 @app.route('/describe/', methods=["GET"])
 def describe_webpage():
     ''' Get a description of the ami state
     '''
     describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
 
-    return json.dumps(describe_response, default=json_serial)
+    try:
+        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
+    except KeyError:
+        public_ip = None
+
+    try:
+        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
+    except KeyError:
+        state = None
+
+    return render_template('describe_details.html', public_ip=public_ip, state=state, response=describe_response)
 
 
 if __name__ == '__main__':
