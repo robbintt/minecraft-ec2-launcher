@@ -8,7 +8,7 @@ consider async await with flask -- no idea about support...
     # the api would have to be at the game port though.... ... hmmm...
 '''
 import json
-from flask import Flask, jsonify
+from flask import Flask, render_template
 import boto3
 import aws_secrets
 from datetime import date, datetime
@@ -89,11 +89,27 @@ def start_webpage():
     Consider polling the instance to see its state.
 
     call describe before start and use a condition to start or stop?
+
+    deal with this internal server error: 
+        raise error_class(parsed_response, operation_name)
+        botocore.exceptions.ClientError: An error occurred (IncorrectInstanceState) when calling the StartInstances operation: The instance 'i-0186ee404747acbaf' is not in a state from which it can be started.
+        127.0.0.1 - - [15/Jun/2019 19:43:15] "GET /start/ HTTP/1.1" 500 -
+
     '''
     describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
     start_response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
 
-    return json.dumps([start_response, describe_response], default=json_serial)
+    try:
+        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
+    except KeyError:
+        public_ip = None
+
+    try:
+        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
+    except KeyError:
+        state = None
+
+    return render_template('start_details.html', public_ip=public_ip, state=state, response=[describe_response, start_response])
 
 
 @app.route('/stop/', methods=["GET", "POST"])
@@ -109,8 +125,27 @@ def stop_webpage():
     describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
     stop_response = stop_ec2_instance(minecraft_instance_ids, dry_run=False, hibernate=False)
 
-    return json.dumps([stop_response, describe_response], default=json_serial)
+    try:
+        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
+    except KeyError:
+        public_ip = None
+
+    try:
+        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
+    except KeyError:
+        state = None
+
+    return render_template('stop_details.html', public_ip=public_ip, state=state, response=[describe_response, stop_response])
+
+@app.route('/', methods=["GET"])
+@app.route('/describe/', methods=["GET"])
+def describe_webpage():
+    ''' Get a description of the ami state
+    '''
+    describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+
+    return json.dumps(describe_response, default=json_serial)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

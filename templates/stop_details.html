@@ -1,0 +1,36 @@
+<style type="text/css">
+
+.greentext {
+  color: green;
+}
+.underline {
+  text-decoration: underline;
+}
+
+.redtext {
+  color: red;
+}
+
+</style>
+
+<title>Minecraft Instance</title>
+
+<h1>Stop Minecraft Instance</h1>
+
+<h3>Public IP Address: <span class="">{% if public_ip %} {{ public_ip }} {% else %} none {% endif %} </span></h3>
+
+<h3>Server State: <span class="redtext">{% if state %} {{ state }} {% else %} uncertain {% endif %} </span></h3>
+
+
+<h1>
+  <span class="redtext underline">You have selected to stop the server.</span>
+</h1>
+<h1>
+  If the server is already <span class="redtext">stopping</span>, it will not try again.  
+</h1>
+<h1>
+  The status should change to <span class="redtext">stopped</span> shortly.
+</h1>
+
+<h1>Here are the responses</h1>
+<h6>{{ response }}</h6>
