@@ -97,14 +97,15 @@ def start_webpage():
 
     '''
     try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
-
-    try:
         start_response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
     except Exception as e:
         start_response = ["Start failed: {}".format(e)]
+
+    # get describe after so that it has updated state
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
 
     try:
         public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
@@ -129,15 +130,17 @@ def stop_webpage():
 
     then i could even rotate UUIDs if there's an issue
     '''
-    try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
 
     try:
         stop_response = stop_ec2_instance(minecraft_instance_ids, dry_run=False, hibernate=False)
     except Exception as e:
         stop_response = ["Stop failed: {}".format(e)]
+
+    # get describe after so that it has updated state
+    try:
+        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+    except Exception as e:
+        describe_response = ["Describe failed: {}".format(e)]
 
     try:
         public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
