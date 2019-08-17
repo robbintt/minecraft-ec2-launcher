@@ -67,8 +67,6 @@ def start_ec2_instance(instance_ids, dry_run, addl_info=''):
         - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.start_instances
     '''
 
-    return "Not currently activated."
-
     start_response = client.start_instances(
             InstanceIds=instance_ids,
             AdditionalInfo=addl_info,
