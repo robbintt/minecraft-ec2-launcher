@@ -33,7 +33,7 @@ Zappa default roles are pretty permissive. This needs reduced: https://github.co
 
 This is currently a shell script that sits in cron and tests every minute.
 
-Crontab entry:  `*/1 * * * * ./detect_empty_server.sh`
+Crontab entry:  `*/1 * * * * ./detect_empty_server`
 
 
 ### counting connections
