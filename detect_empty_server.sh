@@ -23,6 +23,7 @@ if test -f "$FILE"; then
             # stop the server
         echo "$SECONDS_EMPTY elapsed elapsed of $SHUTDOWN_SECONDS seconds"
             echo "Stop the instance."
+            sudo poweroff
         else
             echo "$SECONDS_EMPTY elapsed elapsed of $SHUTDOWN_SECONDS seconds"
             echo "Not ready to shutdown yet - keep waiting."

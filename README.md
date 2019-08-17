@@ -31,17 +31,25 @@ Zappa default roles are pretty permissive. This needs reduced: https://github.co
 
 ## Server Status Checker
 
-Ideally not shut down if people are online or something.
+This is currently a shell script that sits in cron and tests every minute.
 
-https://github.com/Dinnerbone/mcstatus
+Crontab entry:  `*/1 * * * * ./detect_empty_server.sh`
 
-This can also be used to report amount of time without a login if desired.  Then the EC2 instance can be shut down when idle for 30 minutes or something.
 
+### counting connections
 
 Would rather do this as a systemd process and just count connections with gnu stuff
 
 - lsof method: https://www.instructables.com/id/Make-Your-Minecraft-Server-Tell-You-When-Players-a/
   - also has some good ideas about smtp messaging that might be nice.
+
+
+
+### Old idea: write python service to talk to python server and then manage with systemd
+
+https://github.com/Dinnerbone/mcstatus
+
+This can also be used to report amount of time without a login if desired.  Then the EC2 instance can be shut down when idle for 30 minutes or something.
 
 
 ## Connection management
