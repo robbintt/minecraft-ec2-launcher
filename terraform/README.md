@@ -1,3 +1,11 @@
+
+# systemd
+
+- use `sudo service minecraft@1 stop` to stop the service
+- deal with this later
+
+
+
 # Terraform
 
 Store some manual configuration intended to support terraforming these resources
