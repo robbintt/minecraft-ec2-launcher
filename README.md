@@ -36,3 +36,23 @@ Ideally not shut down if people are online or something.
 https://github.com/Dinnerbone/mcstatus
 
 This can also be used to report amount of time without a login if desired.  Then the EC2 instance can be shut down when idle for 30 minutes or something.
+
+
+Would rather do this as a systemd process and just count connections with gnu stuff
+
+- lsof method: https://www.instructables.com/id/Make-Your-Minecraft-Server-Tell-You-When-Players-a/
+  - also has some good ideas about smtp messaging that might be nice.
+
+
+## Connection management
+
+I would rather broker the connection with zappa 
+
+so that zappa flips the server on if a minecraft connection comes through (or a connection on the mc port)
+
+then zappa could keepalive until finally redirecting or proxying the connection
+
+can we redirect the minecraft client from within zappa, if not can we proxy the connection
+
+if proxy what is the lambda cost for say 144 hours of proxying?  any good ways to avoid shuttling all data thru proxy?
+
