@@ -19,6 +19,10 @@
 
 <h1>Describe Minecraft Instance</h1>
 
+<h1>
+  <span class="bluetext underline">You have selected to describe the server.</span>
+</h1>
+
 <h3>Public IP Address: <span class="">{% if public_ip %} {{ public_ip }} {% else %} none {% endif %} </span></h3>
 
 <h3>Easy Login: <span class="bluetext">{% if public_ip %} {{ public_ip }}:25565 {% else %} none {% endif %} </span></h3>
@@ -26,16 +30,14 @@
 <h3>Server State: <span class="bluetext">{% if state %} {{ state }} {% else %} uncertain {% endif %} </span></h3>
 
 
-<h1>
-  <span class="bluetext underline">You have selected to describe the server.</span>
-</h1>
-
+<!-- stop is now turned off
 <div class="padding">
   <a class="redtext" href="https://0j16ohvp8i.execute-api.us-east-1.amazonaws.com/dev/stop/">You can stop the server by clicking this link.</a>
 </div>
 <br />
+-->
 <div>
-  <a class="greentext" href="https://0j16ohvp8i.execute-api.us-east-1.amazonaws.com/dev/start/">You can start the server by clicking this link.</a>
+  <a class="bluetext" href="/start/">You can start the server by clicking this link.</a>
 </div>
 
 <h1>Here is the response:</h1>

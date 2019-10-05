@@ -8,7 +8,7 @@ consider async await with flask -- no idea about support...
     # the api would have to be at the game port though.... ... hmmm...
 '''
 import json
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, flash
 import boto3
 import aws_secrets
 from datetime import date, datetime
@@ -41,7 +41,6 @@ def stop_ec2_instance(instance_ids, dry_run, hibernate):
 
     Apparently after 60 days you need to hard stop and hard start it.
     I don't know how that works, but eh... something to read up on.
-    '''
     stop_response = client.stop_instances(
             InstanceIds=instance_ids,
             #Hibernate=hibernate, # do not include unless enabled on EC2 or it will fail
@@ -49,6 +48,9 @@ def stop_ec2_instance(instance_ids, dry_run, hibernate):
             )
 
     return stop_response 
+    '''
+    # no longer allowing manual stop - relying on auto-stop cron script to stop instance
+    return redirect(url_for('describe_ec2_instance'))
 
 def describe_ec2_instance(instance_ids, dry_run):
     ''' Describe an ec2 instance
@@ -155,7 +157,6 @@ def stop_webpage():
     return render_template('stop_details.html', public_ip=public_ip, state=state, response=[describe_response, stop_response])
 
 
-@app.route('/', methods=["GET"])
 @app.route('/debug/', methods=["GET"])
 def debug_webpage():
     ''' See a describe in json
@@ -167,6 +168,7 @@ def debug_webpage():
 
     return json.dumps(describe_response, default=json_serial)
 
+@app.route('/', methods=["GET"])
 @app.route('/describe/', methods=["GET"])
 def describe_webpage():
     ''' Get a description of the ami state
