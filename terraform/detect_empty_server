@@ -4,7 +4,8 @@
 
 FILE="elapsed_time_empty.dat"
 
-PLAYER_COUNT="$(lsof -iTCP:25565 -sTCP:ESTABLISHED | wc -l)"
+# AMI needs path for lsof if called from cron shell script
+PLAYER_COUNT="$(/usr/bin/lsof -iTCP:25565 -sTCP:ESTABLISHED | wc -l)"
 # note that this actually is off by 1 if > 0 so if you actually want to use it you need to subract 1 if != 0
 # optionally you could find a lsof flag to not show the header line or sed out the header line
 echo PLAYER_COUNT: $PLAYER_COUNT
