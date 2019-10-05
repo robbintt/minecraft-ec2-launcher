@@ -1,8 +1,8 @@
 Description=Minecraft Server: %i
-After=network.target
+After=network.target mnt-efs.mount
 
 [Service]
-WorkingDirectory=/home/ec2-user/minecraft/
+WorkingDirectory=/mnt/efs/minecraft
 
 # from: https://gist.github.com/justinjahn/4fe65b552b0622662420928cc8ffc7c0
 

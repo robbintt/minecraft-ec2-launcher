@@ -38,3 +38,6 @@ To make am image, do the following.
   - move the service: `mv minecraft@.service /etc/systemd/system/`
   - enable the service: `sudo systemctl enable minecraft@1`
   - start the service: `$ sudo systemctl start minecraft@1`
+
+7. set up monitoring services as needed
+  - sudy yum install -y htop
