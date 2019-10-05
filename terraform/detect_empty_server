@@ -2,7 +2,7 @@
 
 # to be installed as systemd service or shell script on ec2 server used for minecraft service
 
-FILE="elapsed_time_empty.dat"
+FILE="/mnt/efs/minecraft/elapsed_time_empty.dat"
 
 # AMI needs path for lsof if called from cron shell script
 PLAYER_COUNT="$(/usr/bin/lsof -iTCP:25565 -sTCP:ESTABLISHED | wc -l)"
@@ -22,7 +22,7 @@ if test -f "$FILE"; then
             # reset seconds
             rm -f $FILE
             # stop the server
-        echo "$SECONDS_EMPTY elapsed elapsed of $SHUTDOWN_SECONDS seconds"
+            echo "$SECONDS_EMPTY elapsed elapsed of $SHUTDOWN_SECONDS seconds"
             echo "Stop the instance."
             sudo poweroff
         else

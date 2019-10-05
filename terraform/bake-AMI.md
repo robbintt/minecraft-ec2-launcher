@@ -30,7 +30,7 @@ To make am image, do the following.
   - `sudo systemctl start crontab`
   - `sudo systemctl enable crontab`
   - `crontab -e`
-    - `*/1 * * * * ./detect_empty_server`
+    - `*/1 * * * * cd /mnt/efs/minecraft && ./detect_empty_server > /dev/null`
 
 6. Set up & Start the minecraft@service
   - Make sure no one else is using the efs!

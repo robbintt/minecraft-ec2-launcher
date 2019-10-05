@@ -8,6 +8,7 @@ consider async await with flask -- no idea about support...
     # the api would have to be at the game port though.... ... hmmm...
 '''
 import json
+import os
 from flask import Flask, render_template, redirect, flash, url_for
 import boto3
 import aws_secrets
@@ -15,201 +16,101 @@ from datetime import date, datetime
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = aws_secrets.flask_secret
+
 client = boto3.client(
     'ec2',
     aws_access_key_id=aws_secrets.aws_access_key_id,
     aws_secret_access_key=aws_secrets.aws_secret_access_key,
     region_name=aws_secrets.region_name)
 
-#minecraft_instance_ids = [aws_secrets.instance_id]
-
 def json_serial(obj):
-    '''JSON serializer for objects not serializable by default json code
-    common solution from: https://stackoverflow.com/a/22238613
+    ''' JSON serializer for objects not serializable by default json code
+
+    This is called in templates I think, probably better to move that logic here.
+
+    see: https://stackoverflow.com/a/22238613
     '''
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
 
 
-def stop_ec2_instance(instance_ids, dry_run, hibernate):
-    ''' Hibernate a given instance unless explicitly stopped.
-
-    Only AMIs support hibernation... the current machine is ubuntu.
-
-    I was planning to switch to AMI, but haven't really messed with it.
-
-    Apparently after 60 days you need to hard stop and hard start it.
-    I don't know how that works, but eh... something to read up on.
-    stop_response = client.stop_instances(
-            InstanceIds=instance_ids,
-            #Hibernate=hibernate, # do not include unless enabled on EC2 or it will fail
-            DryRun=dry_run
-            )
-
-    return stop_response 
+def describe_ec2_instance(instance_id, dry_run=False):
+    ''' Describe a single ec2 instance
     '''
-    # no longer allowing manual stop - relying on auto-stop cron script to stop instance
-    return redirect(url_for('describe_ec2_instance'))
+    instance_details = dict()
+    if not instance_id:
+        return { 'public_ip': None, 'state': None, 'payload': None }
 
-def describe_ec2_instance(instance_ids, dry_run):
-    ''' Describe an ec2 instance
-    '''
-    '''
-    describe_response = client.describe_instances(
-            InstanceIds=instance_ids,
-            DryRun=dry_run
-            )
+    instance_details['payload'] = client.describe_instances(InstanceIds=[instance_id], DryRun=dry_run)
+
+    try:
+        instance_details['public_ip'] = instance_details['payload']['Reservations'][0]['Instances'][0]['PublicIpAddress']
+    except KeyError:
+        instance_details['public_ip'] = None
+
+    try:
+        instance_details['state'] = instance_details['payload']['Reservations'][0]['Instances'][0]['State']['Name']
+    except KeyError:
+        instance_details['state'] = None
+
+    return instance_details
 
 
-    return describe_response
-    '''
-    return
-
-#def start_ec2_instance(instance_ids, dry_run, addl_info=''):
 def start_ec2_instance():
-    ''' Start the ec2 instance
-
-    documentation: 
-        - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.start_instances
-
-    # used to start an existing instance
-    start_response = client.start_instances(
-            InstanceIds=instance_ids,
-            AdditionalInfo=addl_info,
-            DryRun=dry_run
-            )
+    ''' Start a new ec2 instance from the launch template
     '''
-    # template should terminate on stop
-    launch_template = { 'LaunchTemplateName': 'minecraft-immutable-minimal' }  # default version (latest?)
+    launch_template = { 'LaunchTemplateName': aws_secrets.launch_template_name } # template should terminate on stop
+    instance_id = os.environ.get('RUNNING_INSTANCE_ID')
 
-    # needs cached globally for describe, need to parse it out too
-    # describe can use old control flow but get the instance ID from this payload
-    create_response = client.run_instances(MaxCount=1, MinCount=1, LaunchTemplate=launch_template)
+    instance_details = None
+    if instance_id:
+        print("Instance id already exists: {}".format(instance_id))
+        instance_details = describe_ec2_instance(instance_id)
+        # reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
+        # the only risk is that there's a player on an old server who loses their progress
 
-    return str(create_response)
+    if not instance_id or not instance_details or instance_details['state'] not in ['pending', 'running', 'rebooting']:
+        create_response = client.run_instances(MaxCount=1, MinCount=1, LaunchTemplate=launch_template)
+        # replace the old instance ID with the new one
+        os.environ['RUNNING_INSTANCE_ID'] = create_response['Instances'][0]['InstanceId']  # only 1 instance: max=1, min=1
+        print("Added a new instance: {}".format(os.environ.get('RUNNING_INSTANCE_ID')))
 
 
 @app.route('/start/', methods=["GET", "POST"])
 def start_webpage():
-    ''' start the ec2 instance on page load
-    this probably needs some sort of authentication
-    otherwise any bots that hit the URL will load it
-
-    i could just use the endpoint as validation, e.g. put a UUID in the route
-
-    then i could even rotate UUIDs if there's an issue
-
-    Consider polling the instance to see its state.
-
-    call describe before start and use a condition to start or stop?
-
-    deal with this internal server error: 
-        raise error_class(parsed_response, operation_name)
-        botocore.exceptions.ClientError: An error occurred (IncorrectInstanceState) when calling the StartInstances operation: The instance 'i-0186ee404747acbaf' is not in a state from which it can be started.
-        127.0.0.1 - - [15/Jun/2019 19:43:15] "GET /start/ HTTP/1.1" 500 -
-
+    ''' start the ec2 instance on page load if one isn't already started
     '''
     start_response = start_ec2_instance()
-    return start_response
-    '''
-    try:
-        #start_response = start_ec2_instance(minecraft_instance_ids, dry_run=False)
-        start_response = start_ec2_instance()
-    except Exception as e:
-        start_response = ["Start failed: {}".format(e)]
 
-    # get describe after so that it has updated state
-    try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
+    flash(start_response) # consume in describe template
 
-    try:
-        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-    except KeyError:
-        public_ip = None
+    # add a flash message to the describe webpage
+    return redirect(url_for('describe_webpage'))  # lets always use describe to show information
 
-    try:
-        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
-    except KeyError:
-        state = None
-
-    return render_template('start_details.html', public_ip=public_ip, state=state, response=[describe_response, start_response])
-    '''
-
-
-@app.route('/stop/', methods=["GET", "POST"])
-def stop_webpage():
-    ''' start the ec2 instance on page load
-    this probably needs some sort of authentication
-    otherwise any bots that hit the URL will load it
-
-    i could just use the endpoint as validation, e.g. put a UUID in the route
-
-    then i could even rotate UUIDs if there's an issue
-    '''
-
-    try:
-        stop_response = stop_ec2_instance(minecraft_instance_ids, dry_run=False, hibernate=False)
-    except Exception as e:
-        stop_response = ["Stop failed: {}".format(e)]
-
-    # get describe after so that it has updated state
-    try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
-
-    try:
-        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-    except KeyError:
-        public_ip = None
-
-    try:
-        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
-    except KeyError:
-        state = None
-
-    return render_template('stop_details.html', public_ip=public_ip, state=state, response=[describe_response, stop_response])
-
-
-@app.route('/debug/', methods=["GET"])
-def debug_webpage():
-    ''' See a describe in json
-    '''
-    try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
-    except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
-
-    return json.dumps(describe_response, default=json_serial)
 
 @app.route('/', methods=["GET"])
 @app.route('/describe/', methods=["GET"])
 def describe_webpage():
-    ''' Get a description of the ami state
+    ''' Get a description of the last running instance
     '''
-    return redirect(url_for('start_webpage'))
-    '''
+    # TODO: should probably get all instances with the tag so I can detect if things aren't terminating...
+    instance_id = os.environ.get('RUNNING_INSTANCE_ID')
+    print("Describing the instance: {}".format(os.environ.get('RUNNING_INSTANCE_ID')))
+
     try:
-        describe_response = describe_ec2_instance(minecraft_instance_ids, dry_run=False)
+        instance_details = describe_ec2_instance(instance_id, dry_run=False)
     except Exception as e:
-        describe_response = ["Describe failed: {}".format(e)]
+        return 'Describe failed. Details: {}'.format(e)
 
-    try:
-        public_ip = describe_response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-    except KeyError:
-        public_ip = None
-
-    try:
-        state = describe_response['Reservations'][0]['Instances'][0]['State']['Name']
-    except KeyError:
-        state = None
-    '''
-
-    return render_template('describe_details.html', public_ip=public_ip, state=state, response=describe_response)
+    return render_template(
+        'describe_details.html',
+        public_ip=instance_details['public_ip'],
+        state=instance_details['state'],
+        response=instance_details
+        )
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
