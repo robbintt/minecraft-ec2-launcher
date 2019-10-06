@@ -45,6 +45,10 @@ def describe_ec2_instance(instance_id, dry_run=False):
 
     instance_details['payload'] = client.describe_instances(InstanceIds=[instance_id], DryRun=dry_run)
 
+    # untested patch
+    if not instance_details['payload']['Reservations'][0]['Instances']:
+        return { 'public_ip': None, 'state': None, 'payload': None }
+
     try:
         instance_details['public_ip'] = instance_details['payload']['Reservations'][0]['Instances'][0]['PublicIpAddress']
     except KeyError:
