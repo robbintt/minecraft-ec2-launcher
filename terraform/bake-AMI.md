@@ -13,7 +13,6 @@ To make am image, do the following.
 
 2. Login to the instance and secure copy the following (could symlink from efs in the future)
   - minecraft@.service
-  - detect-empty-server
 
 3. Connect the minecraft EFS (elastic fileesystem)
   1. Install aws linux efs tools: `sudo yum install -y amazon-efs-utils`
