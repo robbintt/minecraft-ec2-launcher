@@ -10,6 +10,37 @@ The image also contains a connection to elastic filesystem which holds all insta
 The lambda aws role has three policies attached and is passed into zappa to be attached to the lambda function.
 
 
+## Ideas
+
+- Terraform a bunch of stuff
+  - IAM Policies
+  - EC2 Template
+  - Convert golden master to ansible
+  - Write setup for efs instance
+  - Write teardown for expired efs instances
+  - codepipeline for zappa
+
+- More granular reporting on ec2, efs, transfer, and aws backups usage
+
+- zappa app improvements
+  - react component SPA
+  - offer # of world backups and download button
+  - offer world upload button
+  - credentialing
+  - ability to specify shutdown time after connections end in minutes
+  - ability to specify size of ec2 instance, and turn on/off spot
+
+- ec2 image
+  - ansible it
+  - better reporting than simply an open socket (if socket is dead, still kill it)
+
+- socket management so the service literally turns on when you try to connect via minecraft
+
+- persistent connection route - get rid of dynamic IP
+  - constraint: don't want to pay for elastic IP per month
+  - potentially use route53 aliasing with ebs deployment??
+    - in theory this is the same price, how much is a load balancer per hour? per month?
+
 ## Brittleness
 
 Currently the lambda stores instance id as an envvvar which expires, allowing more than 1 server to come up when the lambda loses its envvar. We need to store the instance id in a more permanent place e.g. ssm param.
