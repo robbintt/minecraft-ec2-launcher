@@ -17,7 +17,7 @@ from datetime import date, datetime
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = uuid.uuid4()
+app.config['SECRET_KEY'] = uuid.uuid4().__str__()
 aws_region='us-east-1'
 launch_template_name='minecraft-immutable-minimal'
 
