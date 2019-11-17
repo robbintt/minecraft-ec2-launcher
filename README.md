@@ -1,32 +1,23 @@
-# AWS Lambda Function: Start EC2 Instance
+# AWS Lambda Function: Start Minecraft EC2 Template
+
+The golden master ami will stop the instance if no connections exist on the port for 15 minutes.
+
+The image also contains a connection to elastic filesystem which holds all instance state.
 
 
-Also might have a function to stop the instance when it receives a signal... and maybe even poll for that signal? Would rather have the signal pushing go to this from the EC2 instance since the EC2 instance is running and the lamdba costs money to run.
+## Lambda Policies
 
-
-## Quick Ref
-
-- ubuntu ec2 ssh connection string: `ssh -i .ssh/whatever-keypair.pem ubuntu@ip_addr`
+The lambda aws role has three policies attached and is passed into zappa to be attached to the lambda function.
 
 
 ## Brittleness
 
-This assumes it's the only EC2 instance in the region, lol.
-
-FUTURE: Use a `tag` or something to track the correct EC2 instance or it's simply not going to work.
-
-
-## Hibernation
-
-Instance hibernation will significantly speed up launch times and preserve existing game state.
-
-Just set `Hibernate=True` in stop_instances.
-
+Currently the lambda stores instance id as an envvvar which expires, allowing more than 1 server to come up when the lambda loses its envvar. We need to store the instance id in a more permanent place e.g. ssm param.
 
 
 ## Zappa Roles
 
-Zappa default roles are pretty permissive. This needs reduced: https://github.com/Miserlou/Zappa#custom-aws-iam-roles-and-policies-for-deployment
+Zappa deployer default roles are pretty permissive. This needs reduced: https://github.com/Miserlou/Zappa#custom-aws-iam-roles-and-policies-for-deployment
 
 
 ## Custom Domain + Zappa

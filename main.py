@@ -9,20 +9,21 @@ consider async await with flask -- no idea about support...
 '''
 import json
 import os
+import uuid
 from flask import Flask, render_template, redirect, flash, url_for
-import boto3
-import aws_secrets
+import boto3  # apparently not necessary to put this in a venv in lambda
+from botocore.exceptions import ClientError 
 from datetime import date, datetime
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = aws_secrets.flask_secret
+app.config['SECRET_KEY'] = uuid.uuid4()
+aws_region='us-east-1'
+launch_template_name='minecraft-immutable-minimal'
 
 client = boto3.client(
     'ec2',
-    aws_access_key_id=aws_secrets.aws_access_key_id,
-    aws_secret_access_key=aws_secrets.aws_secret_access_key,
-    region_name=aws_secrets.region_name)
+    region_name=aws_region)
 
 def json_serial(obj):
     ''' JSON serializer for objects not serializable by default json code
@@ -64,9 +65,12 @@ def describe_ec2_instance(instance_id, dry_run=False):
 
 def start_ec2_instance():
     ''' Start a new ec2 instance from the launch template
+
+    Any param specified client.run_instances overrides the Launch Template.
     '''
-    launch_template = { 'LaunchTemplateName': aws_secrets.launch_template_name } # template should terminate on stop
+    launch_template = { 'LaunchTemplateName': launch_template_name } # template should terminate on stop
     instance_id = os.environ.get('RUNNING_INSTANCE_ID')
+    create_response = None  # let
 
     instance_details = None
     if instance_id:
@@ -75,8 +79,39 @@ def start_ec2_instance():
         # reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
         # the only risk is that there's a player on an old server who loses their progress
 
+    # TODO: the nested logic here needs ironed out or flattened into a generalized configuration
     if not instance_id or not instance_details or instance_details['state'] not in ['pending', 'running', 'rebooting']:
-        create_response = client.run_instances(MaxCount=1, MinCount=1, LaunchTemplate=launch_template)
+        try:
+            create_response = client.run_instances(
+                    MaxCount=1,
+                    MinCount=1,
+                    LaunchTemplate=launch_template)
+        # how do i mock this up!
+        # boto.core.ClientError - message contains "InsufficientInstanceCapacity" string... in json or something
+        # botocore.exceptions.ClientError: An error occurred (InsufficientInstanceCapacity) when calling the RunInstances operation (reached max retries: 4): There is no Spot capacity available that matches your request.
+        # maybe just check if InsufficientInstanceCapacity in e
+        # capacity_exception = False
+        # capacity_exception = True if True in [True for exc_str in e if ('InsufficientInstanceCapacity' in exc_str)]  # gnarly, just get one true if the substring is in the list of strings... this is brutal, use multiple lines...
+        # https://stackoverflow.com/questions/33068055/boto3-python-and-how-to-handle-errors
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'InsufficientInstanceCapacity':
+                try:
+                    logging.info("Default template parameter failed, trying spot instance size 't5.2xlarge': {}".format(e))
+                    create_response = client.run_instances(
+                            MaxCount=1,
+                            MinCount=1,
+                            Instancetype='t5.2xlarge',
+                            LaunchTemplate=launch_template)
+                except ClientError as e:
+                    logging.info("Larger spot instance failed, falling back to on-demand of the template default instance: {}".format(e))
+                    create_response = client.run_instances(
+                            MaxCount=1,
+                            MinCount=1,
+                            # might actually be 'InstanceLifecycle': 'on-demand' or something... confusing...
+                            InstanceMarketOptions={'MarketType': ''},
+                            LaunchTemplate=launch_template)
+                    # if this fails, it will raise
+
         # replace the old instance ID with the new one
         os.environ['RUNNING_INSTANCE_ID'] = create_response['Instances'][0]['InstanceId']  # only 1 instance: max=1, min=1
         print("Added a new instance: {}".format(os.environ.get('RUNNING_INSTANCE_ID')))
@@ -117,4 +152,4 @@ def describe_webpage():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
