@@ -20,10 +20,45 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = uuid.uuid4().__str__()
 aws_region='us-east-1'
 launch_template_name='minecraft-immutable-minimal'
+MC_SSM_PARAMETER ='first_mc_instanceid'
 
-client = boto3.client(
-    'ec2',
-    region_name=aws_region)
+ec2_client = boto3.client('ec2', region_name=aws_region)
+
+ssm_client = boto3.client('ssm', region_name=aws_region) # docs dont mention region...
+
+def put_instanceid_ssmparam(inst_id):
+    '''
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ssm.html#SSM.Client.put_parameter
+    '''
+    return ssm_client.put_parameter(
+            Name=MC_SSM_PARAMETER,
+            Description='id of active minecraft instance',
+            Type='String',
+            Overwrite=True,
+            Value=inst_id,
+            # cannot tag because i overwrite
+            #Tags=[
+            #    {
+            #        'Key': 'Name',
+            #        'Value': 'minecraft'
+            #    },
+            #],
+            Tier='Standard'
+            )
+
+def get_instanceid_ssmparam():
+    '''
+    '''
+    inst_id_param = ssm_client.get_parameters(
+            Names=[MC_SSM_PARAMETER],
+            WithDecryption=False
+            )
+
+    try:
+        return inst_id_param['Parameters'][0]['Value']
+    except (IndexError, ValueError) as e:
+        #logging.error("No SSM Parameter: {}".format(e))
+        return None
 
 def json_serial(obj):
     ''' JSON serializer for objects not serializable by default json code
@@ -44,7 +79,7 @@ def describe_ec2_instance(instance_id, dry_run=False):
     if not instance_id:
         return { 'public_ip': None, 'state': None, 'payload': None }
 
-    instance_details['payload'] = client.describe_instances(InstanceIds=[instance_id], DryRun=dry_run)
+    instance_details['payload'] = ec2_client.describe_instances(InstanceIds=[instance_id], DryRun=dry_run)
 
     # untested patch
     if not instance_details['payload']['Reservations'][0]['Instances']:
@@ -66,10 +101,10 @@ def describe_ec2_instance(instance_id, dry_run=False):
 def start_ec2_instance():
     ''' Start a new ec2 instance from the launch template
 
-    Any param specified client.run_instances overrides the Launch Template.
+    Any param specified ec2_client.run_instances overrides the Launch Template.
     '''
     launch_template = { 'LaunchTemplateName': launch_template_name } # template should terminate on stop
-    instance_id = os.environ.get('RUNNING_INSTANCE_ID')
+    instance_id = get_instanceid_ssmparam()
     create_response = None  # let
 
     instance_details = None
@@ -82,7 +117,7 @@ def start_ec2_instance():
     # TODO: the nested logic here needs ironed out or flattened into a generalized configuration
     if not instance_id or not instance_details or instance_details['state'] not in ['pending', 'running', 'rebooting']:
         try:
-            create_response = client.run_instances(
+            create_response = ec2_client.run_instances(
                     MaxCount=1,
                     MinCount=1,
                     LaunchTemplate=launch_template)
@@ -97,14 +132,14 @@ def start_ec2_instance():
             if e.response['Error']['Code'] == 'InsufficientInstanceCapacity':
                 try:
                     logging.info("Default template parameter failed, trying spot instance size 't5.2xlarge': {}".format(e))
-                    create_response = client.run_instances(
+                    create_response = ec2_client.run_instances(
                             MaxCount=1,
                             MinCount=1,
                             Instancetype='t5.2xlarge',
                             LaunchTemplate=launch_template)
                 except ClientError as e:
                     logging.info("Larger spot instance failed, falling back to on-demand of the template default instance: {}".format(e))
-                    create_response = client.run_instances(
+                    create_response = ec2_client.run_instances(
                             MaxCount=1,
                             MinCount=1,
                             # might actually be 'InstanceLifecycle': 'on-demand' or something... confusing...
@@ -113,8 +148,9 @@ def start_ec2_instance():
                     # if this fails, it will raise
 
         # replace the old instance ID with the new one
-        os.environ['RUNNING_INSTANCE_ID'] = create_response['Instances'][0]['InstanceId']  # only 1 instance: max=1, min=1
-        print("Added a new instance: {}".format(os.environ.get('RUNNING_INSTANCE_ID')))
+        new_instance_id = create_response['Instances'][0]['InstanceId']
+        put_instanceid_ssmparam(new_instance_id)
+        print("Added a new instance: {}".format(new_instance_id))
 
 
 @app.route('/start/', methods=["GET", "POST"])
@@ -135,8 +171,8 @@ def describe_webpage():
     ''' Get a description of the last running instance
     '''
     # TODO: should probably get all instances with the tag so I can detect if things aren't terminating...
-    instance_id = os.environ.get('RUNNING_INSTANCE_ID')
-    print("Describing the instance: {}".format(os.environ.get('RUNNING_INSTANCE_ID')))
+    instance_id = get_instanceid_ssmparam()
+    print("Describing the instance: {}".format(instance_id))
 
     try:
         instance_details = describe_ec2_instance(instance_id, dry_run=False)
