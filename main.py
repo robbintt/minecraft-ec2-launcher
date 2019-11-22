@@ -81,9 +81,15 @@ def describe_ec2_instance(instance_id, dry_run=False):
 
     instance_details['payload'] = ec2_client.describe_instances(InstanceIds=[instance_id], DryRun=dry_run)
 
+    # not interested in figuring out what all can go wrong
+
     # untested patch
-    if not instance_details['payload']['Reservations'][0]['Instances']:
-        return { 'public_ip': None, 'state': None, 'payload': None }
+    try:
+        if not instance_details['payload']['Reservations'][0]['Instances']:
+            return { 'public_ip': None, 'state': None, 'payload': None }
+    # ehh
+    except IndexError:
+        instance_details['public_ip'] = None
 
     try:
         instance_details['public_ip'] = instance_details['payload']['Reservations'][0]['Instances'][0]['PublicIpAddress']
