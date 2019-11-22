@@ -88,17 +88,19 @@ def describe_ec2_instance(instance_id, dry_run=False):
         if not instance_details['payload']['Reservations'][0]['Instances']:
             return { 'public_ip': None, 'state': None, 'payload': None }
     # ehh
-    except IndexError:
+    except KeyError, IndexError:
         instance_details['public_ip'] = None
 
     try:
         instance_details['public_ip'] = instance_details['payload']['Reservations'][0]['Instances'][0]['PublicIpAddress']
-    except KeyError:
+    # ehh
+    except KeyError, IndexError:
         instance_details['public_ip'] = None
 
     try:
         instance_details['state'] = instance_details['payload']['Reservations'][0]['Instances'][0]['State']['Name']
-    except KeyError:
+    # ehh
+    except KeyError, IndexError:
         instance_details['state'] = None
 
     return instance_details
