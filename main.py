@@ -118,7 +118,10 @@ def start_ec2_instance():
     instance_details = None
     if instance_id:
         print("Instance id already exists: {}".format(instance_id))
-        instance_details = describe_ec2_instance(instance_id)
+        try:
+            instance_details = describe_ec2_instance(instance_id)
+        except Exception as e:
+            print("Describe failed, proceeding with start. Exception: {}".format(e))
         # reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
         # the only risk is that there's a player on an old server who loses their progress
 
@@ -182,10 +185,11 @@ def describe_webpage():
     instance_id = get_instanceid_ssmparam()
     print("Describing the instance: {}".format(instance_id))
 
+    instance_details = {'public_ip': None, 'state': None}
     try:
         instance_details = describe_ec2_instance(instance_id, dry_run=False)
     except Exception as e:
-        return 'Describe failed. Details: {}'.format(e)
+        print('Describe failed. Details: {}'.format(e))
 
     return render_template(
         'describe_details.html',
