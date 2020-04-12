@@ -1,9 +1,10 @@
 locals {
   # update this per terraform project
-  project_name = "minecraft-ec2-launcher"
+  project_name = "minecraft_ec2_launcher"
 
   # this should be a module or something
   tf_global_tags = { "IaC" : "Terraform" }
+  project_name_tag = { "Name" : local.project_name }
 }
 
 # Backend bootstrapped in: https://github.com/robbintt/radiant-infra.git
