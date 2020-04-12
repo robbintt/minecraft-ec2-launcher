@@ -2,9 +2,10 @@
     "dev": {
         "app_function": "main.app",
         "aws_region": "us-east-1",
-        "profile_name": "zappa-deleteme",
+        "delete_local_zip": "false",
+        "profile_name": "default",
         "project_name": "minecraft-ec2-b",
-        "runtime": "python3.7",
+        "runtime": "python3.8",
         "s3_bucket": "minecraft-zappa-eprl0kcui",
         "certificate_arn": "arn:aws:acm:us-east-1:705280753284:certificate/6676969f-f312-4609-af50-71d8d74f2607",
         "role_name": "lambda-minecraft-deployer-role",

@@ -1,0 +1,45 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+argcomplete = "*"
+boto3 = "*"
+botocore = "*"
+certifi = "*"
+cfn-flip = "*"
+chardet = "*"
+click = "*"
+docutils = "*"
+durationpy = "*"
+future = "*"
+hjson = "*"
+idna = "*"
+itsdangerous = "*"
+jmespath = "*"
+kappa = "*"
+placebo = "*"
+python-dateutil = "*"
+python-slugify = "*"
+requests = "*"
+s3transfer = "*"
+six = "*"
+toml = "*"
+tqdm = "*"
+troposphere = "*"
+urllib3 = "*"
+wsgi-request-logger = "*"
+zappa = "*"
+Flask = "*"
+Jinja2 = "*"
+lambda_packages = "*"
+MarkupSafe = "*"
+PyYAML = "*"
+Unidecode = "*"
+Werkzeug = "*"
+
+[requires]
+python_version = "3.8"
