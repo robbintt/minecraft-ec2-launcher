@@ -6,11 +6,6 @@
 
 
 
-# Terraform
-
-Store some manual configuration intended to support terraforming these resources
-
-
 ## Expected Resources
 
 - iam
@@ -20,9 +15,7 @@ Store some manual configuration intended to support terraforming these resources
 - route 53
 
 
-### Ansible
-
-
+### Ansible / Packer ?
 
 - [Installing Java Ubuntu 18.04](https://tecadmin.net/install-oracle-java-11-ubuntu-18-04-bionic/)
     - probably irrelevant, try using openjdk with an AMI that can use Hibernate...
