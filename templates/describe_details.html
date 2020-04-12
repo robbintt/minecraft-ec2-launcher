@@ -32,29 +32,27 @@
   <body>
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-sm-8 offset-sm-2">
           <h1 class="cincicraft-header">Cincicraft Controls</h1>
           <hr>
         </div>
       </div>
       <div class="row">
-        <div class="col-md-6 offset-md-3 start-section">
+        <div class="col-sm-8 offset-sm-2 start-section">
           <a class="" href="/start/">Click here to start the server.</a>
           <hr>
         </div>
       </div>
       <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-sm-8 offset-sm-2">
 
           {# see inline js, https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/select #}
-          <p><span class="status-item">Easy Login: </span><input type="text" readonly="true" id="serverIP" class="" value="{% if public_ip %} {{ public_ip }}:25565 {% else %} none {% endif %}"><button type="button" id="copyButton">Copy</button>
+          <p><span class="status-item">Easy Login: </span><input type="text" readonly="true" id="serverIP" class="" value="{% if public_ip %}{{public_ip}}:25565{% else %}{% endif %}"><button type="button" id="copyButton">Copy</button>
           <hr>
 
           <p><span class="status-item">Server Status: </span><span class="">{% if state %} {{ state }} {% else %} offline {% endif %} </span>
 
-          <!--<p><span class="status-item">Player Count: </span><span class="">{% if mcstatus_info %} {{ mcstatus_info['playercount'] }} {% else %} uncertain {% endif %} </span>-->
-
-          <p><span class="status-item">Players online: </span><span class="">{% if mcstatus_info %} {{ mcstatus_info['player_names'] }} {% else %} {% endif %} </span>
+          <p><span class="status-item">Players online: </span><span class="">{% if mcstatus_info %}{{ mcstatus_info['player_names'] }}{% else %}{% endif %} </span>
 
 
         </div>
