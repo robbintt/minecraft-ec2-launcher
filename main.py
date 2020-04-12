@@ -201,7 +201,6 @@ def start_webpage():
 
 
 @app.route('/', methods=["GET"])
-@app.route('/describe/', methods=["GET"])
 def describe_webpage():
     ''' Get a description of the last running instance
     '''
