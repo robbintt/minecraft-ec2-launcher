@@ -14,6 +14,7 @@ from flask import Flask, render_template, redirect, flash, url_for
 import boto3  # apparently not necessary to put this in a venv in lambda
 from botocore.exceptions import ClientError 
 from datetime import date, datetime
+from mcstatus import MinecraftServer
 
 app = Flask(__name__)
 
@@ -164,6 +165,29 @@ def start_ec2_instance():
         print("Added a new instance: {}".format(new_instance_id))
 
 
+def get_mcstatus(server_ip, server_port='25565'):
+    ''' Format this information to be consumed in a template
+    '''
+    server_info = dict()
+    try:
+        server = MinecraftServer.lookup(f"{server_ip}:{server_port}")
+        status = server.status(retries=1)
+        server_info['playercount'] = status.players.online
+        server_info['latency'] = status.latency
+        # see mcstatus cli for example
+        if status.players.sample is not None:
+            server_info['player_names'] = ", ".join([player.name for player in status.players.sample])
+        #query = server.query()
+        #server_info['player_names'] = query.players.names
+        # ping = server.ping() same as reported in status.latency
+
+    except Exception as e:
+        print(f"Exception: {repr(e)}")
+        pass
+
+    return server_info 
+
+
 @app.route('/start/', methods=["GET", "POST"])
 def start_webpage():
     ''' start the ec2 instance on page load if one isn't already started
@@ -191,11 +215,14 @@ def describe_webpage():
     except Exception as e:
         print('Describe failed. Details: {}'.format(e))
 
+    mcstatus_info = get_mcstatus(instance_details['public_ip'])
+
     return render_template(
         'describe_details.html',
         public_ip=instance_details['public_ip'],
         state=instance_details['state'],
-        response=instance_details
+        response=instance_details,
+        mcstatus_info=mcstatus_info
         )
 
 

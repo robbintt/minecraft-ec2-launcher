@@ -29,6 +29,10 @@
 
 <h3>Server State: <span class="bluetext">{% if state %} {{ state }} {% else %} uncertain {% endif %} </span></h3>
 
+<h3>Player Count: <span class="bluetext">{% if mcstatus_info %} {{ mcstatus_info['playercount'] }} {% else %} uncertain {% endif %} </span></h3>
+
+<h3>Player Names: <span class="bluetext">{% if mcstatus_info %} {{ mcstatus_info['player_names'] }} {% else %} uncertain {% endif %} </span></h3>
+
 
 <!-- stop is now turned off
 <div class="padding">
@@ -39,6 +43,9 @@
 <div>
   <a class="bluetext" href="/start/">You can start the server by clicking this link.</a>
 </div>
+
+<h1>Here is the mcstatus payload:</h1>
+<h6>{{ mcstatus_info }}</h6>
 
 <h1>Here is the response:</h1>
 <h6>{{ response }}</h6>
