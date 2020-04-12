@@ -12,6 +12,14 @@
 .redtext {
   color: red;
 }
+#serverIP {
+  padding: 3px;
+}
+#copyButton {
+  padding: 3px 10px;
+  margin-left: 10px;
+  background-color: lightsteelblue;
+}
 
 </style>
 
@@ -26,7 +34,9 @@
 <h3>Public IP Address: <span class="">{% if public_ip %} {{ public_ip }} {% else %} none {% endif %} </span></h3>
 -->
 
-<h3>Easy Login: <span class="bluetext">{% if public_ip %} {{ public_ip }}:25565 {% else %} none {% endif %} </span></h3>
+<!--<h3>Easy Login: <span id="serverIP" class="bluetext">{% if public_ip %} {{ public_ip }}:25565 {% else %} none {% endif %} </span></h3>-->
+{# see inline js, https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/select #}
+<h3>Easy Login: <input type="text" readonly="true" id="serverIP" class="" value="{% if public_ip %} {{ public_ip }}:25565 {% else %} none {% endif %}"><button type="button" id="copyButton">Copy</button></h3>
 
 <h3>Server State: <span class="bluetext">{% if state %} {{ state }} {% else %} uncertain {% endif %} </span></h3>
 
@@ -49,3 +59,24 @@
 <h1>Here is the response:</h1>
 <h6>{{ response }}</h6>
 -->
+
+<script>
+document.querySelector('#copyButton').addEventListener('click', function() {
+  // Select text inside the input field
+  document.querySelector('#serverIP').select();
+
+  var succeed;
+  try {
+    // Copy the selected text to clipboard
+    succeed = document.execCommand('copy');
+  } catch (e) {
+    succeed = false;
+  }
+
+  if (succeed) {
+    // Show a message to indicate successful copy
+    //alert('Copied!');
+  }
+});
+</script>
+
