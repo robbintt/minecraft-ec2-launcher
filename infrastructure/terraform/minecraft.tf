@@ -94,6 +94,38 @@ output "minecraft_subnet_e1b_id" {
   value = aws_subnet.minecraft_subnet_e1b.id
 }
 
-output "minecraft_zappa_sg" {
-  value = aws_security_group.zappa_flask_app_minecraft_ec2_launcher.id
+resource "aws_launch_template" "minecraft_ec2_launcher" {
+  tags       = merge(local.tf_global_tags, local.project_name_tag)
+  name = "minecraft_ec2_launcher"
+  image_id = "ami-0b3a9e69eed330e50" # TODO: Replace with data resource if possible
+  instance_type = "c5.xlarge"
+  key_name = "ec2-c5-minecraft-1" # TODO: Replace with data resource if possible
+  instance_initiated_shutdown_behavior = "terminate"
+  instance_market_options {
+    market_type = "spot"
+    spot_options {
+      spot_instance_type = "one-time"
+      instance_interruption_behavior = "terminate"
+      #block_duration_minutes = 240 # TODO: experimental, how much more expensive is this?
+    }
+  }
+  monitoring {
+    enabled = true
+  }
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups = ["sg-0b7bda22c5bdd763c"]  # TODO: Replace with new vpc data resource
+    subnet_id = "subnet-02a15fd16de359f31" # TODO: replace with new vpc data resource
+  }
+  ebs_optimized = true
+  # TODO: Is this block device used? Why do I have a snapshot_id and an image_id...
+  block_device_mappings {
+    device_name = "/dev/sda1"
+    ebs {
+      volume_size = 8
+      volume_type = "gp2"
+      delete_on_termination = "true"
+      snapshot_id = "snap-08f211225913672c4" # TODO: replace with data resource if possible
+    }
+  }
 }
