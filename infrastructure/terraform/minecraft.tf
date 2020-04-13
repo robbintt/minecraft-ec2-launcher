@@ -86,25 +86,26 @@ data "aws_efs_file_system" "cincicraft" {
   file_system_id = "fs-dbe70e5a"
 }
 
-output "minecraft_subnet_e1a_id" {
-  value = aws_subnet.minecraft_subnet_e1a.id
-}
-
-output "minecraft_subnet_e1b_id" {
-  value = aws_subnet.minecraft_subnet_e1b.id
-}
-
+# WARNING: You must manually update the default_version. See "output" on run.
 resource "aws_launch_template" "minecraft_ec2_launcher" {
-  tags       = merge(local.tf_global_tags, local.project_name_tag)
-  name = "minecraft_ec2_launcher"
-  image_id = "ami-0b3a9e69eed330e50" # TODO: Replace with data resource if possible
-  instance_type = "c5.xlarge"
-  key_name = "ec2-c5-minecraft-1" # TODO: Replace with data resource if possible
+  tags                                 = merge(local.tf_global_tags, local.project_name_tag)
+  name                                 = "minecraft_ec2_launcher"
+  image_id                             = "ami-0b3a9e69eed330e50" # TODO: Replace with data resource if possible
+  instance_type                        = "c5.xlarge"
+  key_name                             = "ec2-c5-minecraft-1" # TODO: Replace with data resource if possible
   instance_initiated_shutdown_behavior = "terminate"
+  tag_specifications {
+    resource_type = "instance"
+    tags          = merge(local.tf_global_tags, local.project_name_tag)
+  }
+  tag_specifications {
+    resource_type = "volume"
+    tags          = merge(local.tf_global_tags, local.project_name_tag)
+  }
   instance_market_options {
     market_type = "spot"
     spot_options {
-      spot_instance_type = "one-time"
+      spot_instance_type             = "one-time"
       instance_interruption_behavior = "terminate"
       #block_duration_minutes = 240 # TODO: experimental, how much more expensive is this?
     }
@@ -113,19 +114,38 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     enabled = true
   }
   network_interfaces {
-    associate_public_ip_address = true
-    security_groups = ["sg-0b7bda22c5bdd763c"]  # TODO: Replace with new vpc data resource
-    subnet_id = "subnet-02a15fd16de359f31" # TODO: replace with new vpc data resource
+    description                 = "Generated from launch template."
+    associate_public_ip_address = "true"
+    delete_on_termination       = "true"
+    security_groups             = ["sg-0b7bda22c5bdd763c"]   # TODO: Replace with new vpc data resource
+    subnet_id                   = "subnet-02a15fd16de359f31" # TODO: replace with new vpc data resource
   }
   ebs_optimized = true
   # TODO: Is this block device used? Why do I have a snapshot_id and an image_id...
   block_device_mappings {
     device_name = "/dev/sda1"
     ebs {
-      volume_size = 8
-      volume_type = "gp2"
+      volume_size           = 8
+      volume_type           = "gp2"
+      encrypted             = "false"
       delete_on_termination = "true"
-      snapshot_id = "snap-08f211225913672c4" # TODO: replace with data resource if possible
+      snapshot_id           = "snap-08f211225913672c4" # TODO: replace with data resource if possible
     }
   }
 }
+
+output "launch_template_default_version" {
+  value = aws_launch_template.minecraft_ec2_launcher.default_version
+}
+output "launch_template_latest_version" {
+  value = aws_launch_template.minecraft_ec2_launcher.latest_version
+}
+
+output "minecraft_subnet_e1a_id" {
+  value = aws_subnet.minecraft_subnet_e1a.id
+}
+
+output "minecraft_subnet_e1b_id" {
+  value = aws_subnet.minecraft_subnet_e1b.id
+}
+
