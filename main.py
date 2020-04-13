@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = uuid.uuid4().__str__()
 aws_region='us-east-1'
-launch_template_name='minecraft-immutable-minimal'
+launch_template_name='minecraft_ec2_launcher'
 MC_SSM_PARAMETER ='first_mc_instanceid'
 
 ec2_client = boto3.client('ec2', region_name=aws_region)
