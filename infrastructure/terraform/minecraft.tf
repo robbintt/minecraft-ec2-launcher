@@ -115,7 +115,9 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     spot_options {
       spot_instance_type             = "one-time"
       instance_interruption_behavior = "terminate"
-      #block_duration_minutes = 240 # TODO: experimental, how much more expensive is this?
+      # TODO: experimental, how much more expensive is this? about 9.4c instead of 8.2c
+      # also, will we need to wait for a block?
+      block_duration_minutes = 60
     }
   }
   monitoring {
