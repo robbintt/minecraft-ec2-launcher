@@ -151,6 +151,10 @@ output "launch_template_latest_version" {
   value = aws_launch_template.minecraft_ec2_launcher.latest_version
 }
 
+output "command_to_update_launch_template" {
+  value = "Update template to latest with awscli: aws ec2 modify-launch-template --launch-template-id \"lt-064bfe2a52cbf11bc\" --default-version \"${aws_launch_template.minecraft_ec2_launcher.latest_version}\" --region \"us-east-1\""
+}
+
 output "minecraft_subnet_e1a_id" {
   value = aws_subnet.minecraft_subnet_e1a.id
 }
@@ -158,4 +162,3 @@ output "minecraft_subnet_e1a_id" {
 output "minecraft_subnet_e1b_id" {
   value = aws_subnet.minecraft_subnet_e1b.id
 }
-
