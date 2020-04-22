@@ -117,7 +117,8 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
       instance_interruption_behavior = "terminate"
       # TODO: experimental, how much more expensive is this? about 9.4c instead of 8.2c
       # also, will we need to wait for a block?
-      block_duration_minutes = 60
+      # results: InsufficientInstanceCapacity. I guess I would need to wait?
+      # block_duration_minutes = 60
     }
   }
   monitoring {
