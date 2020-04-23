@@ -158,6 +158,12 @@ def start_ec2_instance():
                             InstanceMarketOptions={'MarketType': ''},
                             LaunchTemplate=launch_template)
                     # if this fails, it will raise
+                except Exception as g:
+                    # how to handle other errors?
+                    raise(g)
+        except Exception as g:
+            # how to handle other errors?
+            raise(g)
 
         # replace the old instance ID with the new one
         new_instance_id = create_response['Instances'][0]['InstanceId']
