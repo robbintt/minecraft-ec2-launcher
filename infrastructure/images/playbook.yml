@@ -1,0 +1,7 @@
+---
+- name: "Provision ami for minecraft"
+  hosts: default
+  become: true
+
+  roles:
+    - yum

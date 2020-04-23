@@ -1,0 +1,33 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "profile": "default",
+      "region": "us-east-1",
+      "subnet_id": "subnet-0436e5ff07783b2db",
+      "ssh_interface": "public_ip",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "architecture": "arm64",
+          "name": "amzn2-ami-hvm-2.0.*-arm64-gp2",
+          "root-device-type": "ebs"
+        },
+        "owners": ["amazon"],
+        "most_recent": true
+      },
+      "instance_type": "a1.xlarge",
+      "ssh_username": "ec2-user",
+      "ami_name": "packer a1.xlarge {{timestamp}}",
+      "ami_description": "minecraft base ami, packer generated",
+      "tags": { "IaC": "packer-ansible" }
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "ansible",
+      "playbook_file": "./playbook.yml"
+    }
+  ]
+}
