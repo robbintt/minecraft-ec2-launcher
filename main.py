@@ -147,48 +147,8 @@ def start_ec2_instance():
             create_response = ec2_client.run_instances(
                 MaxCount=1, MinCount=1, LaunchTemplate=launch_template
             )
-        # how do i mock this up!
-        # boto.core.ClientError - message contains "InsufficientInstanceCapacity" string... in json or something
-        # botocore.exceptions.ClientError: An error occurred (InsufficientInstanceCapacity) when calling the RunInstances operation (reached max retries: 4): There is no Spot capacity available that matches your request.
-        # maybe just check if InsufficientInstanceCapacity in e
-        # capacity_exception = False
-        # capacity_exception = True if True in [True for exc_str in e if ('InsufficientInstanceCapacity' in exc_str)]  # gnarly, just get one true if the substring is in the list of strings... this is brutal, use multiple lines...
-        # https://stackoverflow.com/questions/33068055/boto3-python-and-how-to-handle-errors
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "InsufficientInstanceCapacity":
-                try:
-                    logging.info(
-                        "Default template parameter failed, trying spot instance size 't5.2xlarge': {}".format(
-                            e
-                        )
-                    )
-                    create_response = ec2_client.run_instances(
-                        MaxCount=1,
-                        MinCount=1,
-                        Instancetype="t5.2xlarge",
-                        LaunchTemplate=launch_template,
-                    )
-                except ClientError as e:
-                    logging.info(
-                        "Larger spot instance failed, falling back to on-demand of the template default instance: {}".format(
-                            e
-                        )
-                    )
-                    create_response = ec2_client.run_instances(
-                        MaxCount=1,
-                        MinCount=1,
-                        # might actually be 'InstanceLifecycle': 'on-demand' or something... confusing...
-                        InstanceMarketOptions={"MarketType": ""},
-                        LaunchTemplate=launch_template,
-                    )
-                    # if this fails, it will raise
-                except Exception as g:
-                    # how to handle other errors?
-                    raise (g)
-            else:
-                raise(e)
         except Exception as g:
-            # how to handle other errors?
+            # handle this later
             raise (g)
 
         # replace the old instance ID with the new one
