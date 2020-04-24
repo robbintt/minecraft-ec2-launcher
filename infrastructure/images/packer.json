@@ -27,6 +27,8 @@
   "provisioners": [
     {
       "type": "ansible",
+      "command": "ansible-playbook",
+      "extra_arguments": ["-vvv"],
       "playbook_file": "./playbook.yml"
     }
   ]

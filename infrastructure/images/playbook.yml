@@ -4,4 +4,6 @@
   become: true
 
   roles:
-    - yum
+    - efs
+    - crontab
+    - minecraft

@@ -1,0 +1,26 @@
+---
+
+- name: Install minecraft dependencies
+  yum:
+    name: "{{ packages }}"
+    state: latest
+  vars: 
+    packages:
+    - java
+
+
+- name: add minecraft service to systemd
+  copy:
+    remote_src: yes
+    src: /mnt/efs/minecraft/minecraft@.service
+    dest: /etc/systemd/system/minecraft@.service
+    force: yes
+
+
+- name: reload the daemon and enable/start the minecraft service
+  systemd:
+    daemon_reload: yes
+    name: minecraft@0
+    enabled: yes
+    state: started
+  

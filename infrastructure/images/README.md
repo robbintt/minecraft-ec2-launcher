@@ -11,3 +11,4 @@ The AMI should be generated from codesuite with packer then written to a SSM par
 ## Requirements
 
 - `brew install ansible packer`
+- packer aws subnet must be configured to auto-assign a public IP

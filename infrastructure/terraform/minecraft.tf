@@ -25,10 +25,10 @@ resource "aws_subnet" "minecraft_subnet_e1a" {
 }
 
 resource "aws_subnet" "minecraft_packer_subnet_e1a" {
-  tags              = merge(local.tf_global_tags, local.project_name_tag)
-  vpc_id            = aws_vpc.minecraft_ec2_launcher.id
-  cidr_block        = "10.2.2.0/24"
-  availability_zone = "us-east-1a"
+  tags                    = merge(local.tf_global_tags, local.project_name_tag)
+  vpc_id                  = aws_vpc.minecraft_ec2_launcher.id
+  cidr_block              = "10.2.2.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 }
 
@@ -106,7 +106,7 @@ resource "aws_key_pair" "minecraft_ec2_key" {
 resource "aws_launch_template" "minecraft_ec2_launcher" {
   tags                                 = merge(local.tf_global_tags, local.project_name_tag)
   name                                 = "minecraft_ec2_launcher"
-  image_id                             = "ami-0b3a9e69eed330e50" # TODO: Replace with data resource if possible
+  image_id                             = "ami-0262820525ba35f2d" # TODO: Replace with data resource if possible
   instance_type                        = "a1.xlarge"
   key_name                             = aws_key_pair.minecraft_ec2_key.key_name
   instance_initiated_shutdown_behavior = "terminate"
@@ -126,9 +126,9 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     spot_options {
       spot_instance_type             = "one-time"
       instance_interruption_behavior = "terminate"
-      # TODO: experimental, how much more expensive is this? about 9.4c instead of 8.2c
+      # TODO: experimental, how much more expensive is this? maybe 10%?
       # also, will we need to wait for a block?
-      # results: InsufficientInstanceCapacity. I guess I would need to wait?
+      # results on c5.xlarge: InsufficientInstanceCapacity. I guess I would need to wait?
       # block_duration_minutes = 60
     }
   }
@@ -143,17 +143,6 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     subnet_id                   = aws_subnet.minecraft_subnet_e1a.id
   }
   ebs_optimized = true
-  # TODO: Is this block device used? Why do I have a snapshot_id and an image_id...
-  block_device_mappings {
-    device_name = "/dev/sda1"
-    ebs {
-      volume_size           = 8
-      volume_type           = "gp2"
-      encrypted             = "false"
-      delete_on_termination = "true"
-      snapshot_id           = "snap-08f211225913672c4" # TODO: replace with data resource if possible
-    }
-  }
 }
 
 output "launch_template_default_version" {
