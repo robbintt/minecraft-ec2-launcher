@@ -107,7 +107,7 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
   tags                                 = merge(local.tf_global_tags, local.project_name_tag)
   name                                 = "minecraft_ec2_launcher"
   image_id                             = "ami-0262820525ba35f2d" # TODO: Replace with data resource if possible
-  instance_type                        = "a1.xlarge"
+  instance_type                        = "a1.large"
   key_name                             = aws_key_pair.minecraft_ec2_key.key_name
   instance_initiated_shutdown_behavior = "terminate"
   tag_specifications {
