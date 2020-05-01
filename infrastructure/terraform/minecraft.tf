@@ -8,6 +8,7 @@ resource "aws_vpc" "minecraft_ec2_launcher" {
   tags                 = merge(local.tf_global_tags, local.project_name_tag)
   cidr_block           = "10.2.0.0/16"
   enable_dns_hostnames = "true"
+  enable_dns_support   = "true"
 }
 
 # imported, I think this was created automatically with the VPC...
@@ -120,7 +121,7 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     tags          = merge(local.tf_global_tags, local.project_name_tag)
   }
   placement {
-    tenancy = "default"
+    tenancy           = "default"
     availability_zone = local.az
   }
   instance_market_options {
