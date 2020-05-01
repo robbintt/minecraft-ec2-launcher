@@ -32,13 +32,6 @@ resource "aws_subnet" "minecraft_packer_subnet_e1a" {
   map_public_ip_on_launch = true
 }
 
-resource "aws_subnet" "minecraft_subnet_e1b" {
-  tags              = merge(local.tf_global_tags, local.project_name_tag)
-  vpc_id            = aws_vpc.minecraft_ec2_launcher.id
-  cidr_block        = "10.2.1.0/24"
-  availability_zone = "us-east-1b"
-}
-
 resource "aws_internet_gateway" "minecraft_ec2_launcher" {
   tags   = merge(local.tf_global_tags, local.project_name_tag)
   vpc_id = aws_vpc.minecraft_ec2_launcher.id
@@ -158,8 +151,4 @@ output "command_to_update_launch_template_from_awscli" {
 
 output "minecraft_subnet_e1a_id" {
   value = aws_subnet.minecraft_subnet_e1a.id
-}
-
-output "minecraft_subnet_e1b_id" {
-  value = aws_subnet.minecraft_subnet_e1b.id
 }
