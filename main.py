@@ -22,6 +22,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = uuid.uuid4().__str__()
 aws_region = "us-east-1"
 launch_template_name = "minecraft_ec2_launcher"
+launch_template_ondemand_name = "minecraft_ec2_launcher_ondemand"
 MC_SSM_PARAMETER = "first_mc_instanceid"
 
 ec2_client = boto3.client("ec2", region_name=aws_region)
@@ -123,7 +124,10 @@ def start_ec2_instance():
     """
     launch_template = {
         "LaunchTemplateName": launch_template_name
-    }  # template should terminate on stop
+    }
+    launch_template_ondemand = {
+        "LaunchTemplateName": launch_template_ondemand_name
+    }
     instance_id = get_instanceid_ssmparam()
     create_response = None  # let
     ON_DEMAND = False  # launch template currently defaults to spot market
@@ -165,9 +169,7 @@ def start_ec2_instance():
                 create_response = ec2_client.run_instances(
                     MaxCount=1,
                     MinCount=1,
-                    # InstanceMarketOptions=json.dumps({"MarketType": "ondemand"}),
-                    InstanceMarketOptions=dict(),
-                    LaunchTemplate=launch_template,
+                    LaunchTemplate=launch_template_ondemand
                 )
             except Exception as g:
                 # handle this later
