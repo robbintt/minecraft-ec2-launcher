@@ -126,7 +126,7 @@ def start_ec2_instance():
     }  # template should terminate on stop
     instance_id = get_instanceid_ssmparam()
     create_response = None  # let
-    ON_DEMAND = False # launch template currently defaults to spot market
+    ON_DEMAND = False  # launch template currently defaults to spot market
 
     instance_details = None
     if instance_id:
@@ -144,20 +144,31 @@ def start_ec2_instance():
         or instance_details["state"] not in ["pending", "running", "rebooting"]
     ):
         try:
+            logging.info(f"Attempting to run instance with default launch template.")
             create_response = ec2_client.run_instances(
                 MaxCount=1, MinCount=1, LaunchTemplate=launch_template
             )
-            logging.info(f"Attempting to run instance with default launch template: {create_response}")
+            logging.info(f"RunInstances Response: {create_response}")
         except:
             # this should test if spot capacity is full before doing this
             ON_DEMAND = True
+            logging.info(
+                "Spot instance creation failed, attempting to create on-demand instance."
+            )
 
         if ON_DEMAND:
             # update launch template to remove spot option
+            logging.info(
+                f"Attempting to run instance with default launch template and on-demand."
+            )
             try:
                 create_response = ec2_client.run_instances(
-                    MaxCount=1, MinCount=1, InstanceMarketOptions={}, LaunchTemplate=launch_template
+                    MaxCount=1,
+                    MinCount=1,
+                    InstanceMarketOptions={},
+                    LaunchTemplate=launch_template,
                 )
+                logging.info(f"RunInstances Response: {create_response}")
             except Exception as g:
                 # handle this later
                 raise (g)
