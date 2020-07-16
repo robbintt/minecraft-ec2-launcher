@@ -148,13 +148,13 @@ def start_ec2_instance():
             create_response = ec2_client.run_instances(
                 MaxCount=1, MinCount=1, LaunchTemplate=launch_template
             )
-            logging.info(f"RunInstances Response: {create_response}")
         except:
             # this should test if spot capacity is full before doing this
             ON_DEMAND = True
             logging.info(
                 "Spot instance creation failed, attempting to create on-demand instance."
             )
+        logging.info(f"RunInstances Response: {create_response}")
 
         if ON_DEMAND:
             # update launch template to remove spot option
@@ -165,13 +165,15 @@ def start_ec2_instance():
                 create_response = ec2_client.run_instances(
                     MaxCount=1,
                     MinCount=1,
-                    InstanceMarketOptions={},
+                    # InstanceMarketOptions=json.dumps({"MarketType": "ondemand"}),
+                    InstanceMarketOptions=dict(),
                     LaunchTemplate=launch_template,
                 )
-                logging.info(f"RunInstances Response: {create_response}")
             except Exception as g:
                 # handle this later
-                raise (g)
+                # raise (g)
+                return
+            logging.info(f"RunInstances Response: {create_response}")
 
         # replace the old instance ID with the new one
         logging.info("Create Instance Response: {}".format(create_response))
