@@ -126,18 +126,18 @@ def start_ec2_instance():
     }  # template should terminate on stop
     instance_id = get_instanceid_ssmparam()
     create_response = None  # let
+    ON_DEMAND = False # launch template currently defaults to spot market
 
     instance_details = None
     if instance_id:
-        print("Instance id already exists: {}".format(instance_id))
         try:
             instance_details = describe_ec2_instance(instance_id)
+            print("Instance id exists: {}".format(instance_id))
         except Exception as e:
             print("Describe failed, proceeding with start. Exception: {}".format(e))
         # reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
-        # the only risk is that there's a player on an old server who loses their progress
 
-    # TODO: the nested logic here needs ironed out or flattened into a generalized configuration
+    # TODO: the duplicated nested logic here needs ironed out
     if (
         not instance_id
         or not instance_details
@@ -147,9 +147,20 @@ def start_ec2_instance():
             create_response = ec2_client.run_instances(
                 MaxCount=1, MinCount=1, LaunchTemplate=launch_template
             )
-        except Exception as g:
-            # handle this later
-            raise (g)
+            logging.info(f"Attempting to run instance with default launch template: {create_response}")
+        except:
+            # this should test if spot capacity is full before doing this
+            ON_DEMAND = True
+
+        if ON_DEMAND:
+            # update launch template to remove spot option
+            try:
+                create_response = ec2_client.run_instances(
+                    MaxCount=1, MinCount=1, InstanceMarketOptions={}, LaunchTemplate=launch_template
+                )
+            except Exception as g:
+                # handle this later
+                raise (g)
 
         # replace the old instance ID with the new one
         logging.info("Create Instance Response: {}".format(create_response))
