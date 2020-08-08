@@ -18,7 +18,7 @@
       },
       "instance_type": "a1.xlarge",
       "ssh_username": "ec2-user",
-      "ami_name": "packer a1.xlarge {{timestamp}}",
+      "ami_name": "minecraft a1.xlarge {{timestamp}}",
       "ami_description": "minecraft base ami, packer generated",
       "tags": { "IaC": "packer-ansible" }
     }
