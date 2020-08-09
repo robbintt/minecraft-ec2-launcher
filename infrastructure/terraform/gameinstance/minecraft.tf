@@ -181,17 +181,22 @@ resource "aws_launch_template" "minecraft_ec2_launcher_ondemand" {
   ebs_optimized = true
 }
 
+resource "aws_sns_topic" "minecraft_user_connection_events" {
+  name = "minecraft_user_connection_events"
+}
+
 output "launch_template_default_version" {
   value = aws_launch_template.minecraft_ec2_launcher.default_version
 }
 output "launch_template_latest_version" {
   value = aws_launch_template.minecraft_ec2_launcher.latest_version
 }
-
 output "command_to_update_launch_template_from_awscli" {
   value = "aws ec2 modify-launch-template --launch-template-id \"${aws_launch_template.minecraft_ec2_launcher.id}\" --default-version \"${aws_launch_template.minecraft_ec2_launcher.latest_version}\" --region \"us-east-1\""
 }
-
 output "minecraft_subnet_e1a_id" {
   value = aws_subnet.minecraft_subnet_e1a.id
+}
+output "minecraft_user_connection_events_sns_arn" {
+  value = aws_sns_topic.minecraft_user_connection_events.arn
 }
