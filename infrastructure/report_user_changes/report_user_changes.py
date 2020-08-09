@@ -31,7 +31,7 @@ def main():
     '''
     server_host = 'localhost'
     last_players_file = 'players_online.dat'
-    sns_arn = ''
+    sns_arn = 'arn:aws:sns:us-east-1:705280753284:minecraft_user_connection_events'
 
     with open(last_players_file) as f:
         last_player_names = json.load(f)
