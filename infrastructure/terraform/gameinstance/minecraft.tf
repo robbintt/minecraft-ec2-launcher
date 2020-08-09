@@ -120,6 +120,9 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
     resource_type = "volume"
     tags          = merge(local.tf_global_tags, local.project_name_tag)
   }
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.minecraft_sns_playerloginout_instance_profile.arn
+  }
   placement {
     tenancy           = "default"
     availability_zone = local.az
@@ -164,6 +167,9 @@ resource "aws_launch_template" "minecraft_ec2_launcher_ondemand" {
     resource_type = "volume"
     tags          = merge(local.tf_global_tags, local.project_name_tag)
   }
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.minecraft_sns_playerloginout_instance_profile.arn
+  }
   placement {
     tenancy           = "default"
     availability_zone = local.az
@@ -185,14 +191,54 @@ resource "aws_sns_topic" "minecraft_user_connection_events" {
   name = "minecraft_user_connection_events"
 }
 
-output "launch_template_default_version" {
-  value = aws_launch_template.minecraft_ec2_launcher.default_version
+data "aws_iam_policy_document" "default_iam_role_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
 }
-output "launch_template_latest_version" {
-  value = aws_launch_template.minecraft_ec2_launcher.latest_version
+
+resource "aws_iam_role" "minecraft_sns_playerloginout" {
+  name               = "minecraft_sns_playerloginout"
+  assume_role_policy = data.aws_iam_policy_document.default_iam_role_assume_role_policy.json
 }
-output "command_to_update_launch_template_from_awscli" {
+
+data "aws_iam_policy_document" "minecraft_sns_playerloginout" {
+  statement {
+    actions = [
+      "sns:Publish",
+    ]
+    resources = [
+      aws_sns_topic.minecraft_user_connection_events.arn,
+    ]
+  }
+}
+
+resource "aws_iam_policy" "minecraft_sns_playerloginout" {
+  name        = "minecraft_sns_playerloginout"
+  path        = "/"
+  description = "Policy for role to publish to minecraft_user_connection_events SNS topic"
+  policy      = data.aws_iam_policy_document.minecraft_sns_playerloginout.json
+}
+
+resource "aws_iam_role_policy_attachment" "minecraft_sns_playerloginout" {
+  role       = aws_iam_role.minecraft_sns_playerloginout.name
+  policy_arn = aws_iam_policy.minecraft_sns_playerloginout.arn
+}
+
+resource "aws_iam_instance_profile" "minecraft_sns_playerloginout_instance_profile" {
+  name = "minecraft_sns_playerloginout_instance_profile"
+  role = aws_iam_role.minecraft_sns_playerloginout.name
+}
+
+output "command_to_update_launch_templates_from_awscli" {
   value = "aws ec2 modify-launch-template --launch-template-id \"${aws_launch_template.minecraft_ec2_launcher.id}\" --default-version \"${aws_launch_template.minecraft_ec2_launcher.latest_version}\" --region \"us-east-1\""
+}
+output "command_to_update_ondemand_launch_templates_from_awscli" {
+  value = "aws ec2 modify-launch-template --launch-template-id \"${aws_launch_template.minecraft_ec2_launcher_ondemand.id}\" --default-version \"${aws_launch_template.minecraft_ec2_launcher_ondemand.latest_version}\" --region \"us-east-1\""
 }
 output "minecraft_subnet_e1a_id" {
   value = aws_subnet.minecraft_subnet_e1a.id
