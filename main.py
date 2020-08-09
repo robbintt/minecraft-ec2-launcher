@@ -12,8 +12,7 @@ import os
 import uuid
 import logging
 from flask import Flask, render_template, redirect, flash, url_for
-import boto3  # apparently not necessary to put this in a venv in lambda
-from botocore.exceptions import ClientError
+import boto3
 from datetime import date, datetime
 from mcstatus import MinecraftServer
 

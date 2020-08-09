@@ -219,7 +219,6 @@ data "aws_iam_policy_document" "minecraft_sns_playerloginout" {
 
 resource "aws_iam_policy" "minecraft_sns_playerloginout" {
   name        = "minecraft_sns_playerloginout"
-  path        = "/"
   description = "Policy for role to publish to minecraft_user_connection_events SNS topic"
   policy      = data.aws_iam_policy_document.minecraft_sns_playerloginout.json
 }
@@ -232,6 +231,100 @@ resource "aws_iam_role_policy_attachment" "minecraft_sns_playerloginout" {
 resource "aws_iam_instance_profile" "minecraft_sns_playerloginout_instance_profile" {
   name = "minecraft_sns_playerloginout_instance_profile"
   role = aws_iam_role.minecraft_sns_playerloginout.name
+}
+
+resource "aws_iam_role" "lambda_ec2_manager" {
+  name               = "minecraft_lambda_ec2_manager"
+  assume_role_policy = data.aws_iam_policy_document.default_iam_role_assume_role_policy.json
+}
+
+# this needs restricted, then attached to a iam group and set on the zappa lambda somehow (in zappa? manually?)
+# each section needs broken out and resources restricted
+# not sure if some describe goes in the launch template section
+data "aws_iam_policy_document" "lambda_ec2_manager" {
+  statement {
+    actions = [
+        "iam:PassRole",
+    ]
+    resources = [ aws_iam_role.minecraft_sns_playerloginout.arn ]
+  }
+  # i don't think GetLaunchTemplateData is used since it queries an instance for its launch template data...
+  #statement {
+  #  actions = [
+  #      "ec2:GetLaunchTemplateData",
+  #  ]
+  #  resources = [ aws_launch_template.minecraft_ec2_launcher.arn, aws_launch_template.minecraft_ec2_launcher_ondemand.arn ]
+  #}
+  statement {
+    actions = [
+        "ec2:Describe*",
+    ]
+    resources = [ "*" ]
+  }
+  statement {
+    actions = [
+        "ec2:DeleteTags",
+        "ec2:StartInstances",
+        "ec2:CreateTags",
+        "ec2:RunInstances",
+        "ec2:StopInstances",
+        "ec2:AssociateIamInstanceProfile",
+        "ec2:ReplaceIamInstanceProfileAssociation"
+    ]
+    resources = [ "*" ]
+  }
+}
+
+# TODO: make ssm parameter for ec2 instance id and restrict this to it
+data "aws_iam_policy_document" "minecraft_lambda_ssm_parameter_manager" {
+  statement {
+    actions = [
+        "ssm:PutParameter",
+        "ssm:AddTagsToResource",
+        "ssm:GetParameters",
+        "ssm:GetParameter"
+    ]
+    resources = [ "*" ]
+  }
+}
+
+resource "aws_iam_policy" "lambda_ssm_manager" {
+  name        = "minecraft_ec2_launcher_ssm_manager"
+  description = "Policy for minecraft ec2 launcher lambda to manage ssm parameters."
+  policy      = data.aws_iam_policy_document.minecraft_lambda_ssm_parameter_manager.json
+}
+
+resource "aws_iam_policy" "lambda_ec2_manager" {
+  name        = "minecraft_ec2_launcher"
+  description = "Policy for lambda to manage minecraft ec2 instances."
+  policy      = data.aws_iam_policy_document.lambda_ec2_manager.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_ssm_manager" {
+  role       = aws_iam_role.lambda_ec2_manager.name
+  policy_arn = aws_iam_policy.lambda_ssm_manager.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_ec2_manager" {
+  role       = aws_iam_role.lambda_ec2_manager.name
+  policy_arn = aws_iam_policy.lambda_ec2_manager.arn
+}
+
+resource "aws_iam_role_policy_attachment" "aws_managed_lambda_basic_execution_role" {
+  role       = aws_iam_role.lambda_ec2_manager.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "aws_managed_xray_writeonly" {
+  role       = aws_iam_role.lambda_ec2_manager.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+}
+
+# TODO: add more restrictive policy based on: https://github.com/Miserlou/Zappa/issues/244
+# the policy_arn attached here does not exist in IaC
+resource "aws_iam_role_policy_attachment" "zappa_overpermissive_policy" {
+  role       = aws_iam_role.lambda_ec2_manager.name
+  policy_arn = "arn:aws:iam::705280753284:policy/zappa_overpermissive_policy"
 }
 
 output "command_to_update_launch_templates_from_awscli" {

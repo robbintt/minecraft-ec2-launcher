@@ -5,11 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 black = "*"
+boto3 = "*"
+botocore = "*"
 
 [packages]
 argcomplete = "*"
-boto3 = "*"
-botocore = "*"
 certifi = "*"
 cfn-flip = "*"
 chardet = "*"
