@@ -97,6 +97,8 @@ def describe_ec2_instance(instance_id, dry_run=False):
     # ehh
     except (KeyError, IndexError) as e:
         instance_details["public_ip"] = None
+    except Exception:
+        instance_details["public_ip"] = None
 
     try:
         instance_details["public_ip"] = instance_details["payload"]["Reservations"][0][
@@ -104,6 +106,8 @@ def describe_ec2_instance(instance_id, dry_run=False):
         ][0]["PublicIpAddress"]
     # ehh
     except (KeyError, IndexError) as e:
+        instance_details["public_ip"] = None
+    except Exception:
         instance_details["public_ip"] = None
 
     try:
@@ -113,6 +117,8 @@ def describe_ec2_instance(instance_id, dry_run=False):
     # ehh
     except (KeyError, IndexError) as e:
         instance_details["state"] = None
+    except Exception:
+        instance_details["public_ip"] = None
 
     return instance_details
 
@@ -122,12 +128,8 @@ def start_ec2_instance():
 
     Any param specified ec2_client.run_instances overrides the Launch Template.
     """
-    launch_template = {
-        "LaunchTemplateName": launch_template_name
-    }
-    launch_template_ondemand = {
-        "LaunchTemplateName": launch_template_ondemand_name
-    }
+    launch_template = {"LaunchTemplateName": launch_template_name}
+    launch_template_ondemand = {"LaunchTemplateName": launch_template_ondemand_name}
     instance_id = get_instanceid_ssmparam()
     create_response = None  # let
     ON_DEMAND = False  # launch template currently defaults to spot market
@@ -155,30 +157,32 @@ def start_ec2_instance():
         except:
             # this should test if spot capacity is full before doing this
             ON_DEMAND = True
-            logging.info(
-                "Spot instance creation failed, attempting to create on-demand instance."
-            )
-        logging.info(f"RunInstances Response: {create_response}")
+            logging.info("Spot instance creation failed with default launch template.")
+
+        # Report the response in all cases
+        logging.info(
+            f"RunInstances default launch template response: {str(create_response)}"
+        )
 
         if ON_DEMAND:
             # update launch template to remove spot option
-            logging.info(
-                f"Attempting to run instance with default launch template and on-demand."
-            )
+            logging.info(f"Attempting to run instance with ondemand launch template.")
             try:
                 create_response = ec2_client.run_instances(
-                    MaxCount=1,
-                    MinCount=1,
-                    LaunchTemplate=launch_template_ondemand
+                    MaxCount=1, MinCount=1, LaunchTemplate=launch_template_ondemand
+                )
+                # Report the response in all cases
+                logging.info(
+                    f"RunInstances ondemand launch template response: {str(create_response)}"
                 )
             except Exception as g:
-                # handle this later
-                # raise (g)
+                # Report the response in all cases
+                logging.info(
+                    f"RunInstances ondemand launch template response: {str(create_response)}"
+                )
                 return
-            logging.info(f"RunInstances Response: {create_response}")
 
         # replace the old instance ID with the new one
-        logging.info("Create Instance Response: {}".format(create_response))
         new_instance_id = create_response["Instances"][0]["InstanceId"]
         put_instanceid_ssmparam(new_instance_id)
         print("Added a new instance: {}".format(new_instance_id))
