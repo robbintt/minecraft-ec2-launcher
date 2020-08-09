@@ -55,9 +55,9 @@ def main():
 
     messages = []
     for player in just_logged_in:
-        messages.append({'text': f"Cincicraft: {player} joined @ {now_subj}"})
+        messages.append({'text': f"Cincicraft: ✨ {player} ✨ joined @ {now_subj}"})
     for player in just_logged_out:
-        messages.append({'text': f"Cincicraft: {player} left @ {now_subj}"})
+        messages.append({'text': f"Cincicraft: ✨ {player} ✨ left @ {now_subj}"})
 
     client = boto3.client('sns', region_name=aws_region)
     for message in messages:
