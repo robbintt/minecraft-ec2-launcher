@@ -38,6 +38,9 @@ def main():
 
     player_names = get_players(server_host)
 
+    with open(last_players_file) as f:
+        json.dump(player_names, f)
+
     just_logged_in = set(player_names) - set(last_player_names)
     just_logged_out = set(last_player_names) - set(player_names)
 
