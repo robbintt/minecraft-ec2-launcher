@@ -37,7 +37,7 @@ def main():
     aws_region = 'us-east-1'
     sns_arn = 'arn:aws:sns:us-east-1:705280753284:minecraft_user_connection_events'
     now = datetime.datetime.now()
-    now_subj = now.astimezone(pytz.timezone('US/Eastern')).strftime('%I:%M %p').lstrip('0')
+    now_subj = now.astimezone(pytz.timezone('US/Eastern')).strftime('%I:%M %p').lstrip('0') + " US/Eastern"
 
     try:
         with open(last_players_file, 'r') as f:
