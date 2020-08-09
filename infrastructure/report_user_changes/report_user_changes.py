@@ -30,15 +30,18 @@ def main():
     NB: debounce should be used in the SNS notifier to avoid excess messages.
     '''
     server_host = 'localhost'
-    last_players_file = 'players_online.dat'
+    last_players_file = 'last_players_online.dat'
     sns_arn = 'arn:aws:sns:us-east-1:705280753284:minecraft_user_connection_events'
 
-    with open(last_players_file) as f:
-        last_player_names = json.load(f)
+    try:
+        with open(last_players_file, 'r') as f:
+            last_player_names = json.load(f)
+    except FileNotFoundError:
+        last_player_names = []
 
     player_names = get_players(server_host)
 
-    with open(last_players_file) as f:
+    with open(last_players_file, 'w') as f:
         json.dump(player_names, f)
 
     just_logged_in = set(player_names) - set(last_player_names)
