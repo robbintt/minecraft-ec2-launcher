@@ -6,3 +6,9 @@
     name: "check connection and manage self-terminate"
     user: ec2-user
     job: "cd /mnt/efs/minecraft && ./detect_empty_server > /dev/null"
+
+- name: Publish joined/left to SNS
+  cron:
+    name: "Publish joined/left to SNS"
+    user: ec2-user
+    job: "cd /mnt/efs/minecraft-ec2-launcher/infrastructure/report_user_changes && ./message > /dev/null"

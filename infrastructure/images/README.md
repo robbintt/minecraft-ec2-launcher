@@ -2,6 +2,13 @@
 
 Currently the AMI is built with packer and hardcoded into terraform.
 
+## Howto:
+
+```
+packer build packer.json
+```
+
+Put the new image ID into the launch templates.
 
 ## Future
 
@@ -11,4 +18,6 @@ The AMI should be generated from codesuite with packer then written to a SSM par
 ## Requirements
 
 - `brew install ansible packer`
-- packer aws subnet must be configured to auto-assign a public IP
+
+- nb: packer aws subnet must be configured to auto-assign a public IP
+  - this is done in this project
