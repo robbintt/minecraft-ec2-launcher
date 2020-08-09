@@ -1,6 +1,6 @@
 ---
 
-- name: Install minecraft dependencies
+- name: Install minecraft and service dependencies
   yum:
     name: "{{ packages }}"
     state: latest
@@ -8,6 +8,7 @@
     packages:
     - java
     - git
+    - python3
 
 
 - name: add minecraft service to systemd
