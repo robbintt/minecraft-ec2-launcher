@@ -11,4 +11,4 @@
   cron:
     name: "Publish joined/left to SNS"
     user: ec2-user
-    job: "cd /mnt/efs/minecraft-ec2-server/infrastructure/report_user_changes && ./message > /dev/null"
+    job: "cd /mnt/efs/minecraft-ec2-launcher/infrastructure/report_user_changes && ./message > /dev/null"
