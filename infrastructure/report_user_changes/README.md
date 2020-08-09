@@ -1,5 +1,7 @@
 # Setup
 
+Instructions for setting this up in efs on an instance from a packer image.
+
 The whole repo is cloned into efs and the virtualenv python is called by hand in the ec2-user crontab.
 
 ## Steps
