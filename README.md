@@ -12,6 +12,9 @@ The lambda aws role has three policies attached and is passed into zappa to be a
 
 ## Ideas
 
+- ftp in front of s3 for world management
+  - [FTP in front of AWS S3](https://github.com/uktrade/aioftps3)
+
 - Terraform a bunch of stuff
   - IAM Policies
   - EC2 Template
