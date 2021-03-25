@@ -4,7 +4,7 @@
   yum:
     name: "{{ packages }}"
     state: latest
-  vars: 
+  vars:
     packages:
     - java
     - git

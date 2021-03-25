@@ -109,7 +109,7 @@ resource "aws_launch_template" "minecraft_ec2_launcher" {
   tags                                 = merge(local.tf_global_tags, local.project_name_tag)
   name                                 = "minecraft_ec2_launcher"
   image_id                             = "ami-00f687b3f8812063a" # TODO: Replace with data resource if possible
-  instance_type                        = "a1.large"
+  instance_type                        = "a1.xlarge"
   key_name                             = aws_key_pair.minecraft_ec2_key.key_name
   instance_initiated_shutdown_behavior = "terminate"
   tag_specifications {
@@ -156,7 +156,7 @@ resource "aws_launch_template" "minecraft_ec2_launcher_ondemand" {
   tags                                 = merge(local.tf_global_tags, local.project_name_tag)
   name                                 = "minecraft_ec2_launcher_ondemand"
   image_id                             = "ami-00f687b3f8812063a" # TODO: Replace with data resource if possible
-  instance_type                        = "a1.large"
+  instance_type                        = "a1.xlarge"
   key_name                             = aws_key_pair.minecraft_ec2_key.key_name
   instance_initiated_shutdown_behavior = "terminate"
   tag_specifications {
