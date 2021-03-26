@@ -206,7 +206,7 @@ def get_mcstatus(server_ip, server_port="25565"):
         # ping = server.ping() same as reported in status.latency
 
     except Exception as e:
-        print(f"Exception: {repr(e)}")
+        print(f"Exception in get_mcstatus: {repr(e)}")
         pass
 
     return server_info

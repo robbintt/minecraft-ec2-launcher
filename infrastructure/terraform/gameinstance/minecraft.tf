@@ -201,9 +201,36 @@ data "aws_iam_policy_document" "default_iam_role_assume_role_policy" {
   }
 }
 
+data "aws_iam_policy_document" "minecraftlambda_iam_role_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com", "events.amazonaws.com", "ec2.amazonaws.com", "apigateway.amazonaws.com"]
+    }
+  }
+}
+
+
+data "aws_iam_policy_document" "gateway_iam_role_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+  }
+}
+
+
 resource "aws_iam_role" "minecraft_sns_playerloginout" {
   name               = "minecraft_sns_playerloginout"
   assume_role_policy = data.aws_iam_policy_document.default_iam_role_assume_role_policy.json
+}
+
+resource "aws_iam_role" "gateway_logs_default_policy_role" {
+  name               = "gateway_logs_default_policy"
+  assume_role_policy = data.aws_iam_policy_document.gateway_iam_role_assume_role_policy.json
 }
 
 data "aws_iam_policy_document" "minecraft_sns_playerloginout" {
@@ -228,6 +255,11 @@ resource "aws_iam_role_policy_attachment" "minecraft_sns_playerloginout" {
   policy_arn = aws_iam_policy.minecraft_sns_playerloginout.arn
 }
 
+resource "aws_iam_role_policy_attachment" "gateway_logs_default_policy" {
+  role       = aws_iam_role.gateway_logs_default_policy_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
 resource "aws_iam_instance_profile" "minecraft_sns_playerloginout_instance_profile" {
   name = "minecraft_sns_playerloginout_instance_profile"
   role = aws_iam_role.minecraft_sns_playerloginout.name
@@ -235,7 +267,7 @@ resource "aws_iam_instance_profile" "minecraft_sns_playerloginout_instance_profi
 
 resource "aws_iam_role" "lambda_ec2_manager" {
   name               = "minecraft_lambda_ec2_manager"
-  assume_role_policy = data.aws_iam_policy_document.default_iam_role_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.minecraftlambda_iam_role_assume_role_policy.json
 }
 
 # this needs restricted, then attached to a iam group and set on the zappa lambda somehow (in zappa? manually?)
@@ -244,9 +276,9 @@ resource "aws_iam_role" "lambda_ec2_manager" {
 data "aws_iam_policy_document" "lambda_ec2_manager" {
   statement {
     actions = [
-        "iam:PassRole",
+      "iam:PassRole",
     ]
-    resources = [ aws_iam_role.minecraft_sns_playerloginout.arn ]
+    resources = [aws_iam_role.minecraft_sns_playerloginout.arn]
   }
   # i don't think GetLaunchTemplateData is used since it queries an instance for its launch template data...
   #statement {
@@ -257,21 +289,21 @@ data "aws_iam_policy_document" "lambda_ec2_manager" {
   #}
   statement {
     actions = [
-        "ec2:Describe*",
+      "ec2:Describe*",
     ]
-    resources = [ "*" ]
+    resources = ["*"]
   }
   statement {
     actions = [
-        "ec2:DeleteTags",
-        "ec2:StartInstances",
-        "ec2:CreateTags",
-        "ec2:RunInstances",
-        "ec2:StopInstances",
-        "ec2:AssociateIamInstanceProfile",
-        "ec2:ReplaceIamInstanceProfileAssociation"
+      "ec2:DeleteTags",
+      "ec2:StartInstances",
+      "ec2:CreateTags",
+      "ec2:RunInstances",
+      "ec2:StopInstances",
+      "ec2:AssociateIamInstanceProfile",
+      "ec2:ReplaceIamInstanceProfileAssociation"
     ]
-    resources = [ "*" ]
+    resources = ["*"]
   }
 }
 
@@ -279,12 +311,12 @@ data "aws_iam_policy_document" "lambda_ec2_manager" {
 data "aws_iam_policy_document" "minecraft_lambda_ssm_parameter_manager" {
   statement {
     actions = [
-        "ssm:PutParameter",
-        "ssm:AddTagsToResource",
-        "ssm:GetParameters",
-        "ssm:GetParameter"
+      "ssm:PutParameter",
+      "ssm:AddTagsToResource",
+      "ssm:GetParameters",
+      "ssm:GetParameter"
     ]
-    resources = [ "*" ]
+    resources = ["*"]
   }
 }
 

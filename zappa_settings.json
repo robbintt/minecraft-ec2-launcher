@@ -17,6 +17,7 @@
           "Name": "minecraft_ec2_launcher",
           "IaC": "CloudFormation"
         },
-        "timeout_seconds": 30
+        "timeout_seconds": 30,
+        "exclude": ["infrastructure"]
     }
 }
