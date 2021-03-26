@@ -9,6 +9,8 @@ The image also contains a connection to elastic filesystem which holds all insta
 
 The lambda aws role has three policies attached and is passed into zappa to be attached to the lambda function.
 
+It is also required to manually attach the zappa aws gateway log role. It is created in terraform.
+
 
 ## Ideas
 
@@ -57,6 +59,8 @@ Zappa deployer default roles are pretty permissive. This needs reduced: https://
 ## Custom Domain + Zappa
 
 - https://romandc.com/zappa-django-guide/walk_domain/
+
+- if you tear the deploy down then you need to `zappa certify` after redeploying to get the custom domain working
 
 
 ## Server Status Checker
