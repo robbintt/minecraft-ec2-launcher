@@ -1,4 +1,11 @@
 ---
+- name: Remove java 11
+  yum:
+    name: "{{ packages }}"
+    state: removed
+  vars:
+    packages:
+    - java-11-amazon-corretto-headless
 
 - name: Install minecraft and service dependencies
   yum:
@@ -6,10 +13,9 @@
     state: latest
   vars:
     packages:
-    - java
+    - java-17-amazon-corretto-headless
     - git
     - python3
-
 
 - name: add minecraft service to systemd
   copy:

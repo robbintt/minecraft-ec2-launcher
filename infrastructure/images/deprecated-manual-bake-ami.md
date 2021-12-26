@@ -33,7 +33,7 @@ To make am image, do the following.
 
 6. Set up & Start the minecraft@service
   - Make sure no one else is using the efs!
-  - install java: sudo yum install -y java-1.8.0
+  - # deprecated: install java: sudo yum install -y java-1.8.0
   - move the service: `mv minecraft@.service /etc/systemd/system/`
   - enable the service: `sudo systemctl enable minecraft@1`
   - start the service: `$ sudo systemctl start minecraft@1`
