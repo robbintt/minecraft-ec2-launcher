@@ -41,7 +41,7 @@ MarkupSafe = "*"
 PyYAML = "*"
 Unidecode = "*"
 Werkzeug = "*"
-mcstatus = "*"
+mcstatus = "==4.0.0"
 
 [requires]
 python_version = "3.8"
