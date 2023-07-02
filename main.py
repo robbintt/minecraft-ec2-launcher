@@ -121,6 +121,13 @@ def describe_ec2_instance(instance_id, dry_run=False):
 
     return instance_details
 
+def dummy_start_ec2_instance():
+    ''' Disable this feature
+
+    This service is not currently available.
+    '''
+    print("The service is disabled, this is a dummy function.")
+    pass
 
 def start_ec2_instance():
     """ Start a new ec2 instance from the launch template
@@ -216,7 +223,7 @@ def get_mcstatus(server_ip, server_port="25565"):
 def start_webpage():
     """ start the ec2 instance on page load if one isn't already started
     """
-    start_response = start_ec2_instance()
+    start_response = dummy_start_ec2_instance()
 
     flash(start_response)  # consume in describe template
 
